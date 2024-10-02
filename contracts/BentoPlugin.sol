@@ -273,12 +273,4 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
         return chunkPixels;
     }
 
-    function getGrid() public view returns (Pixel[][] memory) {
-        Pixel[][] memory grid = new Pixel[][](X_MAX);
-        for (uint256 x = 0; x < X_MAX; x++) {
-            grid[x] = getColumn(x);
-        }
-        return grid;
-    }
-
 }

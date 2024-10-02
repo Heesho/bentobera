@@ -15,7 +15,6 @@ interface IBentoPlugin {
     function getRow(uint256 y) external view returns (Pixel[] memory);
     function getColumn(uint256 x) external view returns (Pixel[] memory);
     function getGridChunk(uint256 startX, uint256 startY, uint256 endX, uint256 endY) external view returns (Pixel[][] memory);
-    function getGrid() external view returns (Pixel[][] memory);
 }
 
 interface IGauge {
@@ -94,7 +93,4 @@ contract Multicall {
         return IBentoPlugin(plugin).getGridChunk(startX, startY, endX, endY);
     }
 
-    function getGrid() external view returns (IBentoPlugin.Pixel[][] memory) {
-        return IBentoPlugin(plugin).getGrid();
-    }
 }

@@ -5,8 +5,12 @@ const { ethers, network } = require("hardhat");
 const { execPath } = require("process");
 
 const AddressZero = "0x0000000000000000000000000000000000000000";
-const pointOne = convert("0.1", 18);
+const pointZeroOne = convert("0.01", 18);
 const one = convert("1", 18);
+
+function getRndInteger(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
 
 let owner, treasury, user0, user1, user2, user3;
 let base, voter;
@@ -54,959 +58,772 @@ describe("local: test0", function () {
   it("First test", async function () {
     console.log("******************************************************");
   });
-  /*
-  it("User0 tries to copy pasta that doesnt exist", async function () {
-    console.log("******************************************************");
-    await expect(
-      plugin.connect(user0).copy(user0.address, { value: pointOne })
-    ).to.be.revertedWith("Plugin__InvalidPasta");
-  });
-
-  it("User0 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user0)
-      .create(user0.address, "Henlo World from user0", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User2 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user2)
-      .create(user2.address, "Henlo World from user2", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User3 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user3)
-      .create(user3.address, "Henlo World from user3", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User3 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user3)
-      .create(user3.address, "Henlo World from user3", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("Forward time 2000 seconds", async function () {
-    console.log("******************************************************");
-    await network.provider.send("evm_increaseTime", [2000]);
-    await network.provider.send("evm_mine");
-  });
-
-  it("User0 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user0)
-      .create(user0.address, "Henlo World from user0", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User2 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user2).copy(user2.address, { value: pointOne });
-  });
-
-  it("User2 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user2).copy(user2.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User2 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user2).copy(user2.address, { value: pointOne });
-  });
-
-  it("User2 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user2).copy(user2.address, { value: pointOne });
-  });
-
-  it("Forward 1 hour", async function () {
-    console.log("******************************************************");
-    await network.provider.send("evm_increaseTime", [3600]);
-    await network.provider.send("evm_mine");
-  });
-
-  it("User3 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user3)
-      .create(user3.address, "Henlo World from user3", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User3 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user3)
-      .create(user3.address, "Henlo World from user3", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user0)
-      .create(user0.address, "Henlo World from user0", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("get queue", async function () {
-    console.log("******************************************************");
-    const queue = await multicall.getQueue();
-    console.log("Queue: ", queue);
-  });
-
-  it("get queue sizes", async function () {
-    console.log("******************************************************");
-    console.log("Queue Size: ", await plugin.getQueueSize());
-    console.log("Creator Queue Size: ", await plugin.getCreatorQueueSize());
-  });
-
-  it("User0 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user0)
-      .create(user0.address, "Henlo World from user0", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User2 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user2)
-      .create(user2.address, "Henlo World from user2", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User3 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user3)
-      .create(user3.address, "Henlo World from user3", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User3 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user3)
-      .create(user3.address, "Henlo World from user3", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User0 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user0)
-      .create(user0.address, "Henlo World from user0", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User2 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user2).copy(user2.address, { value: pointOne });
-  });
-
-  it("User2 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user2).copy(user2.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User2 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user2).copy(user2.address, { value: pointOne });
-  });
-
-  it("User2 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user2).copy(user2.address, { value: pointOne });
-  });
-
-  it("User3 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user3)
-      .create(user3.address, "Henlo World from user3", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User3 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user3)
-      .create(user3.address, "Henlo World from user3", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user0)
-      .create(user0.address, "Henlo World from user0", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user0)
-      .create(user0.address, "Henlo World from user0", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User2 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user2)
-      .create(user2.address, "Henlo World from user2", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User3 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user3)
-      .create(user3.address, "Henlo World from user3", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User3 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user3)
-      .create(user3.address, "Henlo World from user3", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User0 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user0)
-      .create(user0.address, "Henlo World from user0", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User2 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user2).copy(user2.address, { value: pointOne });
-  });
-
-  it("User2 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user2).copy(user2.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User1 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user1).copy(user1.address, { value: pointOne });
-  });
-
-  it("User2 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user2).copy(user2.address, { value: pointOne });
-  });
-
-  it("User2 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user2).copy(user2.address, { value: pointOne });
-  });
-
-  it("Forward 1 hour", async function () {
-    console.log("******************************************************");
-    await network.provider.send("evm_increaseTime", [3600]);
-    await network.provider.send("evm_mine");
-  });
-
-  it("User3 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user3)
-      .create(user3.address, "Henlo World from user3", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User3 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user3)
-      .create(user3.address, "Henlo World from user3", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("Forward 1 hour", async function () {
-    console.log("******************************************************");
-    await network.provider.send("evm_increaseTime", [3600]);
-    await network.provider.send("evm_mine");
-  });
-
-  it("User0 creates new pasta", async function () {
-    console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await plugin
-      .connect(user0)
-      .create(user0.address, "Henlo World from user0", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("User0 copies pasta", async function () {
-    console.log("******************************************************");
-    await plugin.connect(user0).copy(user0.address, { value: pointOne });
-  });
-
-  it("get queue sizes", async function () {
-    console.log("******************************************************");
-    console.log("Queue Size: ", await plugin.getQueueSize());
-    console.log("Creator Queue Size: ", await plugin.getCreatorQueueSize());
-  });
 
-  it("multicall testing", async function () {
+  it("User0 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user0.address,
+          [getRndInteger(0, 100)],
+          [getRndInteger(0, 100)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User1 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user1.address,
+          [getRndInteger(0, 100)],
+          [getRndInteger(0, 100)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+  });
+
+  it("Gauge data", async function () {
     console.log("******************************************************");
-    console.log(await multicall.getGauge(user0.address));
-    await voter.getReward(user0.address);
     console.log(await multicall.getGauge(user0.address));
   });
 
-  it("User0 copies pasta", async function () {
+  it("Grid data", async function () {
     console.log("******************************************************");
-    await multicall
-      .connect(user0)
-      .copyPasta(user0.address, { value: pointOne });
+    const gridChunk = await multicall.getGridChunk(0, 0, 24, 24);
+    // Visualize the grid
+    console.log("Grid Visualization:");
+    for (let i = 0; i < gridChunk.length; i++) {
+      let row = gridChunk[i].map((item) => item[0].toString()).join(" "); // Only take the color number
+      console.log(row);
+    }
   });
 
-  it("User0 creates new pasta", async function () {
+  it("User0 places tiles randomly", async function () {
     console.log("******************************************************");
-    let price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
-    await multicall
-      .connect(user0)
-      .createPasta(user0.address, "Henlo World from user0", 1827464427, price, {
-        value: price,
-      });
-    console.log("Pasta created");
-    price = await plugin.getCreatePrice();
-    console.log("Price: ", divDec(price));
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user0.address,
+          [getRndInteger(0, 100)],
+          [getRndInteger(0, 100)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 
-  */
+  it("User1 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user1.address,
+          [getRndInteger(0, 100)],
+          [getRndInteger(0, 100)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+  });
+
+  it("User2 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user2.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user2)
+        .placeFor(
+          user2.address,
+          [getRndInteger(0, 100)],
+          [getRndInteger(0, 100)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user2.getBalance()));
+  });
+
+  it("User3 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user3.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user3)
+        .placeFor(
+          user3.address,
+          [getRndInteger(0, 100)],
+          [getRndInteger(0, 100)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user3.getBalance()));
+  });
+
+  it("Gauge data", async function () {
+    console.log("******************************************************");
+    console.log(await multicall.getGauge(user0.address));
+  });
+
+  it("Gauge data", async function () {
+    console.log("******************************************************");
+    console.log(await multicall.getGauge(user1.address));
+  });
+
+  it("Grid data", async function () {
+    console.log("******************************************************");
+    const gridChunk = await multicall.getGridChunk(0, 0, 24, 24);
+    // Visualize the grid
+    console.log("Grid Visualization:");
+    for (let i = 0; i < gridChunk.length; i++) {
+      let row = gridChunk[i].map((item) => item[0].toString()).join(" "); // Only take the color number
+      console.log(row);
+    }
+  });
+
+  it("User0 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user0.address,
+          [getRndInteger(0, 100)],
+          [getRndInteger(0, 100)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User1 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user1.address,
+          [getRndInteger(0, 100)],
+          [getRndInteger(0, 100)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+  });
+
+  it("User2 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user2.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user2)
+        .placeFor(
+          user2.address,
+          [getRndInteger(0, 100)],
+          [getRndInteger(0, 100)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user2.getBalance()));
+  });
+
+  it("User3 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user3.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user3)
+        .placeFor(
+          user3.address,
+          [getRndInteger(0, 100)],
+          [getRndInteger(0, 100)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user3.getBalance()));
+  });
+
+  it("Gauge data", async function () {
+    console.log("******************************************************");
+    console.log(await multicall.getGauge(user0.address));
+  });
+
+  it("Gauge data", async function () {
+    console.log("******************************************************");
+    console.log(await multicall.getGauge(user1.address));
+  });
+
+  it("Grid data", async function () {
+    console.log("******************************************************");
+    const gridChunk = await multicall.getGridChunk(0, 0, 24, 24);
+    // Visualize the grid
+    console.log("Grid Visualization:");
+    for (let i = 0; i < gridChunk.length; i++) {
+      let row = gridChunk[i].map((item) => item[0].toString()).join(" "); // Only take the color number
+      console.log(row);
+    }
+  });
+
+  it("User0 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user0.address,
+          [getRndInteger(0, 100)],
+          [getRndInteger(0, 100)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User1 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user1.address,
+          [getRndInteger(0, 100)],
+          [getRndInteger(0, 100)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+  });
+
+  it("User2 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user2.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user2)
+        .placeFor(
+          user2.address,
+          [getRndInteger(0, 100)],
+          [getRndInteger(0, 100)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user2.getBalance()));
+  });
+
+  it("User3 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user3.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user3)
+        .placeFor(
+          user3.address,
+          [getRndInteger(0, 100)],
+          [getRndInteger(0, 100)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user3.getBalance()));
+  });
+
+  it("Gauge data", async function () {
+    console.log("******************************************************");
+    console.log(await multicall.getGauge(user0.address));
+  });
+
+  it("Gauge data", async function () {
+    console.log("******************************************************");
+    console.log(await multicall.getGauge(user1.address));
+  });
+
+  it("Grid data", async function () {
+    console.log("******************************************************");
+    const gridChunk = await multicall.getGridChunk(0, 0, 24, 24);
+    // Visualize the grid
+    console.log("Grid Visualization:");
+    for (let i = 0; i < gridChunk.length; i++) {
+      let row = gridChunk[i].map((item) => item[0].toString()).join(" "); // Only take the color number
+      console.log(row);
+    }
+  });
+
+  it("User0 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user0.address,
+          [getRndInteger(0, 100)],
+          [getRndInteger(0, 100)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User1 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user1.address,
+          [getRndInteger(0, 100)],
+          [getRndInteger(0, 100)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+  });
+
+  it("User2 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user2.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user2)
+        .placeFor(
+          user2.address,
+          [getRndInteger(0, 100)],
+          [getRndInteger(0, 100)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user2.getBalance()));
+  });
+
+  it("User3 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user3.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user3)
+        .placeFor(
+          user3.address,
+          [getRndInteger(0, 100)],
+          [getRndInteger(0, 100)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user3.getBalance()));
+  });
+
+  it("Gauge data", async function () {
+    console.log("******************************************************");
+    console.log(await multicall.getGauge(user0.address));
+  });
+
+  it("Gauge data", async function () {
+    console.log("******************************************************");
+    console.log(await multicall.getGauge(user1.address));
+  });
+
+  it("Grid data", async function () {
+    console.log("******************************************************");
+    const gridChunk = await multicall.getGridChunk(0, 0, 24, 24);
+    // Visualize the grid
+    console.log("Grid Visualization:");
+    for (let i = 0; i < gridChunk.length; i++) {
+      let row = gridChunk[i].map((item) => item[0].toString()).join(" "); // Only take the color number
+      console.log(row);
+    }
+  });
+
+  it("User0 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user0.address,
+          [getRndInteger(0, 25)],
+          [getRndInteger(0, 25)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User1 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user1.address,
+          [getRndInteger(0, 25)],
+          [getRndInteger(0, 25)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+  });
+
+  it("User2 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user2.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user2)
+        .placeFor(
+          user2.address,
+          [getRndInteger(0, 25)],
+          [getRndInteger(0, 25)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user2.getBalance()));
+  });
+
+  it("User3 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user3.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user3)
+        .placeFor(
+          user3.address,
+          [getRndInteger(0, 25)],
+          [getRndInteger(0, 25)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user3.getBalance()));
+  });
+
+  it("User0 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user0.address,
+          [getRndInteger(0, 25)],
+          [getRndInteger(0, 25)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User1 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user1.address,
+          [getRndInteger(0, 25)],
+          [getRndInteger(0, 25)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+  });
+
+  it("User2 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user2.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user2)
+        .placeFor(
+          user2.address,
+          [getRndInteger(0, 25)],
+          [getRndInteger(0, 25)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user2.getBalance()));
+  });
+
+  it("User3 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user3.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user3)
+        .placeFor(
+          user3.address,
+          [getRndInteger(0, 25)],
+          [getRndInteger(0, 25)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user3.getBalance()));
+  });
+
+  it("User0 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user0.address,
+          [getRndInteger(0, 25)],
+          [getRndInteger(0, 25)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User1 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user1.address,
+          [getRndInteger(0, 25)],
+          [getRndInteger(0, 25)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+  });
+
+  it("User2 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user2.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user2)
+        .placeFor(
+          user2.address,
+          [getRndInteger(0, 25)],
+          [getRndInteger(0, 25)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user2.getBalance()));
+  });
+
+  it("User3 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user3.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user3)
+        .placeFor(
+          user3.address,
+          [getRndInteger(0, 25)],
+          [getRndInteger(0, 25)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user3.getBalance()));
+  });
+
+  it("Grid data", async function () {
+    console.log("******************************************************");
+    const gridChunk = await multicall.getGridChunk(0, 0, 24, 24);
+    // Visualize the grid
+    console.log("Grid Visualization:");
+    for (let i = 0; i < gridChunk.length; i++) {
+      let row = gridChunk[i].map((item) => item[0].toString()).join(" "); // Only take the color number
+      console.log(row);
+    }
+  });
+
+  it("User0 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 200; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user0.address,
+          [getRndInteger(0, 25)],
+          [getRndInteger(0, 25)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User1 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+    for (let i = 0; i < 200; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user1.address,
+          [getRndInteger(0, 25)],
+          [getRndInteger(0, 25)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+  });
+
+  it("User2 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user2.getBalance()));
+    for (let i = 0; i < 200; i++) {
+      await multicall
+        .connect(user2)
+        .placeFor(
+          user2.address,
+          [getRndInteger(0, 25)],
+          [getRndInteger(0, 25)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user2.getBalance()));
+  });
+
+  it("User3 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user3.getBalance()));
+    for (let i = 0; i < 200; i++) {
+      await multicall
+        .connect(user3)
+        .placeFor(
+          user3.address,
+          [getRndInteger(0, 25)],
+          [getRndInteger(0, 25)],
+          getRndInteger(0, 9),
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user3.getBalance()));
+  });
+
+  it("Grid data", async function () {
+    console.log("******************************************************");
+    const gridChunk = await multicall.getGridChunk(0, 0, 24, 24);
+    // Visualize the grid
+    console.log("Grid Visualization:");
+    for (let i = 0; i < gridChunk.length; i++) {
+      let row = gridChunk[i].map((item) => item[0].toString()).join(" "); // Only take the color number
+      console.log(row);
+    }
+  });
 });
