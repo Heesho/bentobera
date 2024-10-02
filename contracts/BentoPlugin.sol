@@ -31,10 +31,11 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
 
     /*----------  CONSTANTS  --------------------------------------------*/
 
-    uint256 public constant AMOUNT = 1e16;
-    uint256 public constant X_MAX = 256;
-    uint256 public constant Y_MAX = 256;
     uint256 public constant DURATION = 7 days;
+    uint256 public constant AMOUNT = 1 ether;
+    uint256 public constant X_MAX = 100;
+    uint256 public constant Y_MAX = 100;
+
     string public constant SYMBOL = "BENTO";
     string public constant PROTOCOL = "BentoBera";
 
@@ -49,16 +50,17 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
     address[] private bribeTokens;
 
     address public treasury;
+    uint256 public placePrice = 0.01 ether;
+    uint256 public colorMax = 9;
 
-    struct Tile {
+    struct Pixel {
         uint256 color;
         address account;
     }
 
-    string[] public colors;
     uint256 public totalPlaced;
     mapping(address => uint256) public account_Placed;
-    Tile[X_MAX][Y_MAX] public tiles;
+    Pixel[X_MAX][Y_MAX] public pixels;
 
     /*----------  ERRORS ------------------------------------------------*/
 
@@ -66,12 +68,15 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
     error Plugin__InvalidInput();
     error Plugin__InvalidZeroInput();
     error Plugin__NotAuthorizedVoter();
-    error Plugin__InsufficientFunds();
+    error Plugin__InvalidPayment();
 
     /*----------  EVENTS ------------------------------------------------*/
 
     event Plugin__Placed(address indexed account, address indexed prevAccount, uint256 x, uint256 y, uint256 color);
     event Plugin__ClaimedAnDistributed();
+    event Plugin__TreasurySet(address treasury);
+    event Plugin__PlacePriceSet(uint256 placePrice);
+    event Plugin__ColorMaxSet(uint256 colorMax);
 
     /*----------  MODIFIERS  --------------------------------------------*/
 
@@ -108,17 +113,13 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
     {
         uint256 balance = address(this).balance;
         if (balance > DURATION) {
-            uint256 treasuryFee = balance / 10;
             address token = getUnderlyingAddress();
             IWBERA(token).deposit{value: balance}();
-            if (bribe != address(0)) {
-                IERC20(token).safeTransfer(treasury, treasuryFee);
-                IERC20(token).safeApprove(bribe, 0);
-                IERC20(token).safeApprove(bribe, balance - treasuryFee);
-                IBribe(bribe).notifyRewardAmount(token, balance - treasuryFee);
-            } else {
-                IERC20(token).safeTransfer(treasury, balance);
-            }
+            uint256 treasuryFee = balance / 5;
+            IERC20(token).safeTransfer(treasury, treasuryFee);
+            IERC20(token).safeApprove(bribe, 0);
+            IERC20(token).safeApprove(bribe, balance - treasuryFee);
+            IBribe(bribe).notifyRewardAmount(token, balance - treasuryFee);
 
         }
     }
@@ -128,24 +129,27 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
         payable
         nonReentrant
     {
-        if (color >= colors.length) revert Plugin__InvalidColor();
+        if (color > colorMax) revert Plugin__InvalidColor();
         if (x.length == 0) revert Plugin__InvalidInput();
         if (x.length != y.length) revert Plugin__InvalidInput();
+        uint256 cost = placePrice * x.length;
+        if (msg.value != cost) revert Plugin__InvalidPayment();
+
         for (uint256 i = 0; i < x.length; i++) {
             if (x[i] > X_MAX || y[i] > Y_MAX) revert Plugin__InvalidInput();
-            address prevAccount = tiles[x[i]][y[i]].account;
-            tiles[x[i]][y[i]].color = color;
-            tiles[x[i]][y[i]].account = account;
+            address prevAccount = pixels[x[i]][y[i]].account;
+            pixels[x[i]][y[i]].color = color;
+            pixels[x[i]][y[i]].account = account;
             if (prevAccount != address(0)) {
-                if (gauge != address(0)) IGauge(gauge)._withdraw(prevAccount, AMOUNT);
+                IGauge(gauge)._withdraw(prevAccount, AMOUNT);
             }
             emit Plugin__Placed(account, prevAccount, x[i], y[i], color);
         }
+
         uint256 amount = AMOUNT * x.length;
-        if (msg.value != amount) revert Plugin__InsufficientFunds();
         totalPlaced += amount;
         account_Placed[account] += amount;
-        if (gauge != address(0)) IGauge(gauge)._deposit(account, amount);
+        IGauge(gauge)._deposit(account, amount);
     }
 
     // Function to receive Ether. msg.data must be empty
@@ -158,10 +162,17 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
 
     function setTreasury(address _treasury) external onlyOwner {
         treasury = _treasury;
+        emit Plugin__TreasurySet(treasury);
     }
 
-    function setColors(string[] memory _colors) external onlyOwner {
-        colors = _colors;
+    function setPlacePrice(uint256 _placePrice) external onlyOwner {
+        placePrice = _placePrice;
+        emit Plugin__PlacePriceSet(placePrice);
+    }
+
+    function setColorMax(uint256 _colorMax) external onlyOwner {
+        colorMax = _colorMax;
+        emit Plugin__ColorMaxSet(colorMax);
     }
 
     function setGauge(address _gauge) external onlyVoter {
@@ -222,54 +233,48 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
         return bribeTokens;
     }
 
-    function getColors() public view returns (string[] memory) {
-        return colors;
+    function getPixel(uint256 x, uint256 y) public view returns (uint256 color, address account) {
+        Pixel memory pixel = pixels[x][y];
+        return (pixel.color, pixel.account);
     }
 
-    function getTile(uint256 x, uint256 y) public view returns (uint256 color, address account) {
-        require(x < X_MAX && y < Y_MAX, "Invalid coordinates");
-        Tile memory tile = tiles[x][y];
-        return (tile.color, tile.account);
-    }
-
-    function getRow(uint256 y) public view returns (Tile[] memory) {
-        require(y < Y_MAX, "Invalid row index");
-        Tile[] memory rowTiles = new Tile[](X_MAX);
+    function getRow(uint256 y) public view returns (Pixel[] memory) {
+        Pixel[] memory rowPixels = new Pixel[](X_MAX);
 
         for (uint256 x = 0; x < X_MAX; x++) {
-            rowTiles[x] = tiles[x][y];
+            rowPixels[x] = pixels[x][y];
         }
-        return rowTiles;
+        return rowPixels;
     }
 
-    function getColumn(uint256 x) public view returns (Tile[] memory) {
-        require(x < X_MAX, "Invalid column index");
-        Tile[] memory columnTiles = new Tile[](Y_MAX);
+    function getColumn(uint256 x) public view returns (Pixel[] memory) {
+        Pixel[] memory columnPixels = new Pixel[](Y_MAX);
 
         for (uint256 y = 0; y < Y_MAX; y++) {
-            columnTiles[y] = tiles[x][y];
+            columnPixels[y] = pixels[x][y];
         }
-        return columnTiles;
+        return columnPixels;
     }
 
     function getGridChunk(uint256 startX, uint256 startY, uint256 endX, uint256 endY) 
-        public view returns (Tile[][] memory) 
+        public view returns (Pixel[][] memory) 
     {
-        require(startX < X_MAX && endX < X_MAX && startY < Y_MAX && endY < Y_MAX, "Invalid coordinates");
-        require(startX <= endX && startY <= endY, "Invalid chunk coordinates");
-
         uint256 width = endX - startX + 1;
         uint256 height = endY - startY + 1;
 
-        Tile[][] memory chunkTiles = new Tile[][](width);
+        Pixel[][] memory chunkPixels = new Pixel[][](width);
 
         for (uint256 x = 0; x < width; x++) {
-            chunkTiles[x] = new Tile[](height);
+            chunkPixels[x] = new Pixel[](height);
             for (uint256 y = 0; y < height; y++) {
-                chunkTiles[x][y] = tiles[startX + x][startY + y];
+                chunkPixels[x][y] = pixels[startX + x][startY + y];
             }
         }
-        return chunkTiles;
+        return chunkPixels;
+    }
+
+    function getGrid() public view returns (Pixel[][] memory) {
+        return pixels;
     }
 
 }
