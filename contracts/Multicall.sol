@@ -11,7 +11,7 @@ interface IBentoPlugin {
     function placeFor(address account, uint256[] calldata x, uint256[] calldata y, uint256 color)  external payable;
     function getGauge() external view returns (address);
     function placePrice() external view returns (uint256);
-    function getPixel(uint256 x, uint256 y) external view returns (Pixel);
+    function getPixel(uint256 x, uint256 y) external view returns (Pixel memory);
     function getRow(uint256 y) external view returns (Pixel[] memory);
     function getColumn(uint256 x) external view returns (Pixel[] memory);
     function getGridChunk(uint256 startX, uint256 startY, uint256 endX, uint256 endY) external view returns (Pixel[][] memory);
@@ -78,7 +78,7 @@ contract Multicall {
         }
     }
 
-    function getPixel(uint256 x, uint256 y) external view returns (IBentoPlugin.Pixel) {
+    function getPixel(uint256 x, uint256 y) external view returns (IBentoPlugin.Pixel memory) {
         return IBentoPlugin(plugin).getPixel(x, y);
     }
 
