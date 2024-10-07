@@ -13,7 +13,7 @@ function getRndInteger(min, max) {
 }
 
 let owner, treasury, user0, user1, user2, user3;
-let base, voter;
+let base, voter, vaultFactory;
 let plugin, multicall;
 
 describe("local: test0", function () {
@@ -30,13 +30,20 @@ describe("local: test0", function () {
     voter = await voterArtifact.deploy();
     console.log("- Voter Initialized");
 
+    const vaultFactoryArtifact = await ethers.getContractFactory(
+      "BerachainRewardsVaultFactory"
+    );
+    vaultFactory = await vaultFactoryArtifact.deploy();
+    console.log("- Vault Factory Initialized");
+
     const pluginArtifact = await ethers.getContractFactory("BentoPlugin");
     plugin = await pluginArtifact.deploy(
       base.address,
       voter.address,
       [base.address],
       [base.address],
-      treasury.address
+      treasury.address,
+      vaultFactory.address
     );
     console.log("- Plugin Initialized");
 

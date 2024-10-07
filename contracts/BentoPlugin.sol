@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -26,6 +27,27 @@ interface IWBERA {
     function deposit() external payable;
 }
 
+interface IBerachainRewardsVaultFactory {
+    function createRewardsVault(address _vaultToken) external returns (address);
+}
+
+interface IRewardVault {
+    function delegateStake(address account, uint256 amount) external;
+    function delegateWithdraw(address account, uint256 amount) external;
+}
+
+contract VaultToken is ERC20, Ownable {
+    constructor() ERC20("Bull Ish Vault Token", "BIVT") {}
+
+    function mint(address to, uint256 amount) external onlyOwner {
+        _mint(to, amount);
+    }
+
+    function burn(address from, uint256 amount) external onlyOwner {
+        _burn(from, amount);
+    }
+}
+
 contract BentoPlugin is ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
 
@@ -48,6 +70,9 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
     address private bribe;
     address[] private tokensInUnderlying;
     address[] private bribeTokens;
+
+    address public immutable vaultToken;  // staking token address for Berachain Rewards Vault Delegate Stake
+    address public immutable rewardVault;   // reward vault address for Berachain Rewards Vault Delegate Stake
 
     address public treasury;
     uint256 public placePrice = 0.01 ether;
@@ -97,7 +122,8 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
         address _voter, 
         address[] memory _tokensInUnderlying,   // [WBERA]
         address[] memory _bribeTokens,          // [WBERA]
-        address _treasury
+        address _treasury,
+        address _vaultFactory
     ) {
         underlying = IERC20Metadata(_underlying);
         voter = _voter;
@@ -105,6 +131,9 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
         bribeTokens = _bribeTokens;
         treasury = _treasury;
         OTOKEN = IVoter(_voter).OTOKEN();
+
+        vaultToken = address(new VaultToken());
+        rewardVault = IBerachainRewardsVaultFactory(_vaultFactory).createRewardsVault(address(vaultToken));
     }
 
     function claimAndDistribute() 
@@ -142,6 +171,10 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
             pixels[x[i]][y[i]].account = account;
             if (prevAccount != address(0)) {
                 IGauge(gauge)._withdraw(prevAccount, AMOUNT);
+
+                // Berachain Rewards Vault Delegate Stake
+                IRewardVault(rewardVault).delegateWithdraw(account, AMOUNT);
+                VaultToken(vaultToken).burn(address(this), AMOUNT);
             }
             emit Plugin__Placed(account, prevAccount, x[i], y[i], color);
         }
@@ -150,6 +183,12 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
         totalPlaced += amount;
         account_Placed[account] += amount;
         IGauge(gauge)._deposit(account, amount);
+
+        // Berachain Rewards Vault Delegate Stake
+        VaultToken(vaultToken).mint(address(this), amount);
+        IERC20(vaultToken).safeApprove(rewardVault, 0);
+        IERC20(vaultToken).safeApprove(rewardVault, amount);
+        IRewardVault(rewardVault).delegateStake(account, amount);
     }
 
     // Function to receive Ether. msg.data must be empty
