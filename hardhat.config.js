@@ -2,7 +2,6 @@ const { config } = require("dotenv");
 
 require("@nomiclabs/hardhat-waffle");
 require("@nomicfoundation/hardhat-verify");
-require("solidity-coverage");
 
 const CHAIN_ID = 80084; // berachain bartio
 

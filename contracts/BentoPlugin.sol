@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 interface IGauge {
     function _deposit(address account, uint256 amount) external;
+
     function _withdraw(address account, uint256 amount) external;
+
     function balanceOf(address account) external view returns (uint256);
+
     function totalSupply() external view returns (uint256);
 }
 
@@ -33,6 +34,7 @@ interface IBerachainRewardsVaultFactory {
 
 interface IRewardVault {
     function delegateStake(address account, uint256 amount) external;
+
     function delegateWithdraw(address account, uint256 amount) external;
 }
 
@@ -58,21 +60,22 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
     uint256 public constant X_MAX = 100;
     uint256 public constant Y_MAX = 100;
 
-    string public constant SYMBOL = "BENTO";
     string public constant PROTOCOL = "BentoBera";
+    string public constant NAME = "BENTO";
 
     /*----------  STATE VARIABLES  --------------------------------------*/
 
-    IERC20Metadata private immutable underlying;
+    IERC20 private immutable token;
     address private immutable OTOKEN;
     address private immutable voter;
     address private gauge;
     address private bribe;
-    address[] private tokensInUnderlying;
-    address[] private bribeTokens;
 
-    address public immutable vaultToken;  // staking token address for Berachain Rewards Vault Delegate Stake
-    address public immutable rewardVault;   // reward vault address for Berachain Rewards Vault Delegate Stake
+    address private vaultToken;
+    address private rewardVault;
+
+    address[] private assetTokens;
+    address[] private bribeTokens;
 
     address public treasury;
     uint256 public placePrice = 0.01 ether;
@@ -87,6 +90,17 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
     mapping(address => uint256) public account_Placed;
     Pixel[X_MAX][Y_MAX] public pixels;
 
+    struct Faction {
+        address account;
+        uint256 balance;
+        uint256 totalPlaced;
+        mapping(address => uint256) account_Placed;
+    }
+
+    uint256 public factionIndex;
+    mapping(uint256 => Faction) public index_Faction;
+    mapping(address => uint256) public faction_Index;
+
     /*----------  ERRORS ------------------------------------------------*/
 
     error Plugin__InvalidColor();
@@ -97,7 +111,13 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
 
     /*----------  EVENTS ------------------------------------------------*/
 
-    event Plugin__Placed(address indexed account, address indexed prevAccount, uint256 x, uint256 y, uint256 color);
+    event Plugin__Placed(
+        address indexed account,
+        address indexed prevAccount,
+        uint256 x,
+        uint256 y,
+        uint256 color
+    );
     event Plugin__ClaimedAnDistributed();
     event Plugin__TreasurySet(address treasury);
     event Plugin__PlacePriceSet(uint256 placePrice);
@@ -118,47 +138,49 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
     /*----------  FUNCTIONS  --------------------------------------------*/
 
     constructor(
-        address _underlying,                    // WBERA
-        address _voter, 
-        address[] memory _tokensInUnderlying,   // [WBERA]
-        address[] memory _bribeTokens,          // [WBERA]
+        address _token, // WBERA
+        address _voter,
+        address[] memory _assetTokens, // [WBERA]
+        address[] memory _bribeTokens, // [WBERA]
         address _treasury,
         address _vaultFactory
     ) {
-        underlying = IERC20Metadata(_underlying);
+        token = IERC20(_token);
         voter = _voter;
-        tokensInUnderlying = _tokensInUnderlying;
+        assetTokens = _assetTokens;
         bribeTokens = _bribeTokens;
         treasury = _treasury;
         OTOKEN = IVoter(_voter).OTOKEN();
 
         vaultToken = address(new VaultToken());
-        rewardVault = IBerachainRewardsVaultFactory(_vaultFactory).createRewardsVault(address(vaultToken));
+        rewardVault = IBerachainRewardsVaultFactory(_vaultFactory)
+            .createRewardsVault(address(vaultToken));
     }
 
-    function claimAndDistribute() 
-        external 
-        nonReentrant
-    {
+    function claimAndDistribute() external nonReentrant {
         uint256 balance = address(this).balance;
         if (balance > DURATION) {
-            address token = getUnderlyingAddress();
-            IWBERA(token).deposit{value: balance}();
+            IWBERA(address(token)).deposit{value: balance}();
             uint256 treasuryFee = balance / 5;
             IERC20(token).safeTransfer(treasury, treasuryFee);
             IERC20(token).safeApprove(bribe, 0);
             IERC20(token).safeApprove(bribe, balance - treasuryFee);
-            IBribe(bribe).notifyRewardAmount(token, balance - treasuryFee);
-
+            IBribe(bribe).notifyRewardAmount(
+                address(token),
+                balance - treasuryFee
+            );
         }
     }
 
-    function placeFor(address account, uint256[] calldata x, uint256[] calldata y, uint256 color) 
-        external
-        payable
-        nonReentrant
-    {
-        if (color > colorMax) revert Plugin__InvalidColor();
+    function placeFor(
+        address account,
+        uint256[] calldata x,
+        uint256[] calldata y,
+        uint256 color,
+        uint256 faction
+    ) external payable nonReentrant {
+        if (faction >= factionIndex) revert Plugin__InvalidFaction();
+        if (color >= colorMax) revert Plugin__InvalidColor();
         if (x.length == 0) revert Plugin__InvalidInput();
         if (x.length != y.length) revert Plugin__InvalidInput();
         uint256 cost = placePrice * x.length;
@@ -173,7 +195,7 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
                 IGauge(gauge)._withdraw(prevAccount, AMOUNT);
 
                 // Berachain Rewards Vault Delegate Stake
-                IRewardVault(rewardVault).delegateWithdraw(account, AMOUNT);
+                IRewardVault(rewardVault).delegateWithdraw(prevAccount, AMOUNT);
                 VaultToken(vaultToken).burn(address(this), AMOUNT);
             }
             emit Plugin__Placed(account, prevAccount, x[i], y[i], color);
@@ -198,6 +220,11 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
     fallback() external payable {}
 
     /*----------  RESTRICTED FUNCTIONS  ---------------------------------*/
+
+    function createFaction(address _faction) external onlyOwner {
+        index_Faction[factionIndex] = _faction;
+        factionIndex++;
+    }
 
     function setTreasury(address _treasury) external onlyOwner {
         treasury = _treasury;
@@ -232,24 +259,16 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
         return IGauge(gauge).totalSupply();
     }
 
-    function getUnderlyingName() public view virtual returns (string memory) {
-        return SYMBOL;
-    }
-
-    function getUnderlyingSymbol() public view virtual returns (string memory) {
-        return SYMBOL;
-    }
-
-    function getUnderlyingAddress() public view virtual returns (address) {
-        return address(underlying);
-    }
-
-    function getUnderlyingDecimals() public view virtual returns (uint8) {
-        return underlying.decimals();
+    function getToken() public view returns (address) {
+        return address(token);
     }
 
     function getProtocol() public view virtual returns (string memory) {
         return PROTOCOL;
+    }
+
+    function getName() public view virtual returns (string memory) {
+        return NAME;
     }
 
     function getVoter() public view returns (address) {
@@ -264,15 +283,26 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
         return bribe;
     }
 
-    function getTokensInUnderlying() public view virtual returns (address[] memory) {
-        return tokensInUnderlying;
+    function getAssetTokens() public view returns (address[] memory) {
+        return assetTokens;
     }
 
     function getBribeTokens() public view returns (address[] memory) {
         return bribeTokens;
     }
 
-    function getPixel(uint256 x, uint256 y) public view returns (uint256 color, address account) {
+    function getVaultToken() public view returns (address) {
+        return vaultToken;
+    }
+
+    function getRewardVault() public view returns (address) {
+        return rewardVault;
+    }
+
+    function getPixel(
+        uint256 x,
+        uint256 y
+    ) public view returns (uint256 color, address account) {
         Pixel memory pixel = pixels[x][y];
         return (pixel.color, pixel.account);
     }
@@ -295,9 +325,12 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
         return columnPixels;
     }
 
-    function getGridChunk(uint256 startX, uint256 startY, uint256 endX, uint256 endY) 
-        public view returns (Pixel[][] memory) 
-    {
+    function getGridChunk(
+        uint256 startX,
+        uint256 startY,
+        uint256 endX,
+        uint256 endY
+    ) public view returns (Pixel[][] memory) {
         uint256 width = endX - startX + 1;
         uint256 height = endY - startY + 1;
 
@@ -311,5 +344,4 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
         }
         return chunkPixels;
     }
-
 }
