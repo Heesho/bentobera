@@ -52,7 +52,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     /*----------  CONSTANTS  --------------------------------------------*/
 
     uint256 public constant DURATION = 7 days;
-    uint256 public constant AMOUNT = 1 ether;
+    uint256 public constant AMOUNT = 1;
     uint256 public constant CAPACITY = 10000;
 
     string public constant PROTOCOL = "BentoBera";
@@ -90,7 +90,8 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         uint256 totalPlaced;
     }
 
-    mapping(uint256 => Pixel) public index_Pixel;
+    // mapping(uint256 => Pixel) public index_Pixel;
+    Pixel[CAPACITY] public index_Pixel;
 
     mapping(uint256 => Faction) public index_Faction;
     mapping(address => uint256) public factionOwner_Index;
@@ -146,8 +147,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         OTOKEN = IVoter(_voter).OTOKEN();
 
         vaultToken = address(new VaultToken());
-        rewardVault = IBerachainRewardsVaultFactory(_vaultFactory)
-            .createRewardsVault(address(vaultToken));
+        rewardVault = IBerachainRewardsVaultFactory(_vaultFactory).createRewardsVault(address(vaultToken));
     }
 
     function claimAndDistribute() external nonReentrant {

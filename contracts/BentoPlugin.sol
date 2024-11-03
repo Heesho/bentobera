@@ -90,17 +90,6 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
     mapping(address => uint256) public account_Placed;
     Pixel[X_MAX][Y_MAX] public pixels;
 
-    struct Faction {
-        address account;
-        uint256 balance;
-        uint256 totalPlaced;
-        mapping(address => uint256) account_Placed;
-    }
-
-    uint256 public factionIndex;
-    mapping(uint256 => Faction) public index_Faction;
-    mapping(address => uint256) public faction_Index;
-
     /*----------  ERRORS ------------------------------------------------*/
 
     error Plugin__InvalidColor();
@@ -176,10 +165,8 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
         address account,
         uint256[] calldata x,
         uint256[] calldata y,
-        uint256 color,
-        uint256 faction
+        uint256 color
     ) external payable nonReentrant {
-        if (faction >= factionIndex) revert Plugin__InvalidFaction();
         if (color >= colorMax) revert Plugin__InvalidColor();
         if (x.length == 0) revert Plugin__InvalidInput();
         if (x.length != y.length) revert Plugin__InvalidInput();
@@ -220,11 +207,6 @@ contract BentoPlugin is ReentrancyGuard, Ownable {
     fallback() external payable {}
 
     /*----------  RESTRICTED FUNCTIONS  ---------------------------------*/
-
-    function createFaction(address _faction) external onlyOwner {
-        index_Faction[factionIndex] = _faction;
-        factionIndex++;
-    }
 
     function setTreasury(address _treasury) external onlyOwner {
         treasury = _treasury;

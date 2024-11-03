@@ -1,20 +1,29 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-interface IBentoPlugin {
+interface IMapPlugin {
     struct Pixel {
-        uint256 color;
         address account;
+        uint256 faction;
+        uint256 color;
     }
-    function placeFor(address account, uint256[] calldata x, uint256[] calldata y, uint256 color)  external payable;
+    struct Faction {
+        address owner;
+        uint256 balance;
+        uint256 totalPlaced;
+    }
+    function placeFor(address account, uint256 faction, uint256 color, uint256[] calldata indexes) external;
     function getGauge() external view returns (address);
     function placePrice() external view returns (uint256);
-    function getPixel(uint256 x, uint256 y) external view returns (Pixel memory);
-    function getRow(uint256 y) external view returns (Pixel[] memory);
-    function getColumn(uint256 x) external view returns (Pixel[] memory);
-    function getGridChunk(uint256 startX, uint256 startY, uint256 endX, uint256 endY) external view returns (Pixel[][] memory);
+    function getPixel(uint256 index) external view returns (Pixel memory);
+    function getPixels(uint256 startIndex, uint256 endIndex) external view returns (Pixel[] memory);
+    function factionMax() external view returns (uint256);
+    function index_Faction(uint256 index) external view returns (Faction memory);
+    function account_Placed(address account) external view returns (uint256);
+    function account_Faction_Balance(address account, uint256 faction) external view returns (uint256);
+    function account_Faction_Placed(address account, uint256 faction) external view returns (uint256);
 }
 
 interface IGauge {
@@ -28,11 +37,24 @@ interface IVoter {
     function getReward(address account) external;
 }
 
-contract Multicall {
+interface IWBERA {
+    function deposit() external payable;
+}
 
+contract Multicall {
+    using SafeERC20 for IERC20;
+
+    address public immutable base;
     address public immutable plugin;
     address public immutable voter;
     address public immutable oBERO;
+
+    struct AccountState {
+        uint256 balance;
+        uint256 placed;
+        uint256[] factionBalance;
+        uint256[] factionPlaced;
+    }
 
     struct GaugeState {
         uint256 rewardPerToken;
@@ -42,14 +64,18 @@ contract Multicall {
         uint256 oBeroBalance;
     }
 
-    constructor(address _plugin, address _voter, address _oBERO) {
+    constructor(address _base, address _plugin, address _voter, address _oBERO) {
+        base = _base;
         plugin = _plugin;
         voter = _voter;
         oBERO = _oBERO;
     }
 
-    function placeFor(address account, uint256[] calldata x, uint256[] calldata y, uint256 color) external payable {
-        IBentoPlugin(plugin).placeFor{value: msg.value}(account, x, y, color);
+    function placeFor(address account, uint256 faction, uint256 color, uint256[] calldata indexes) external payable {
+        IWBERA(base).deposit{value: msg.value}();
+        IERC20(base).safeApprove(plugin, 0);
+        IERC20(base).safeApprove(plugin, msg.value);
+        IMapPlugin(plugin).placeFor(account, faction, color, indexes);
     }
 
     function getReward(address account) external {
@@ -63,34 +89,46 @@ contract Multicall {
     fallback() external payable {}
 
     function getPlacePrice() external view returns (uint256) {
-        return IBentoPlugin(plugin).placePrice();
+        return IMapPlugin(plugin).placePrice();
     }
 
     function getGauge(address account) external view returns (GaugeState memory gaugeState) {
-        address gauge = IBentoPlugin(plugin).getGauge();
-        if (gauge != address(0)) {
-            gaugeState.rewardPerToken = IGauge(gauge).totalSupply() == 0 ? 0 : (IGauge(gauge).getRewardForDuration(oBERO) * 1e18 / IGauge(gauge).totalSupply());
-            gaugeState.totalSupply = IGauge(gauge).totalSupply();
-            gaugeState.balance = IGauge(gauge).balanceOf(account);
-            gaugeState.earned = IGauge(gauge).earned(account, oBERO);
-            gaugeState.oBeroBalance = IERC20(oBERO).balanceOf(account);
+        address gauge = IMapPlugin(plugin).getGauge();
+        gaugeState.rewardPerToken = IGauge(gauge).totalSupply() == 0 ? 0 : (IGauge(gauge).getRewardForDuration(oBERO) * 1e18 / IGauge(gauge).totalSupply());
+        gaugeState.totalSupply = IGauge(gauge).totalSupply();
+        gaugeState.balance = IGauge(gauge).balanceOf(account);
+        gaugeState.earned = IGauge(gauge).earned(account, oBERO);
+        gaugeState.oBeroBalance = IERC20(oBERO).balanceOf(account);
+    }
+
+    function getAccountState(address account) external view returns (AccountState memory accountState) {
+        address gauge = IMapPlugin(plugin).getGauge();
+        accountState.balance = IGauge(gauge).balanceOf(account);
+        accountState.placed = IMapPlugin(plugin).account_Placed(account);
+        uint256 maxFactions = IMapPlugin(plugin).factionMax();
+        accountState.factionBalance = new uint256[](maxFactions);
+        accountState.factionPlaced = new uint256[](maxFactions);
+        for (uint256 i = 0; i < maxFactions; i++) {
+            accountState.factionBalance[i] = IMapPlugin(plugin).account_Faction_Balance(account, i);
+            accountState.factionPlaced[i] = IMapPlugin(plugin).account_Faction_Placed(account, i);
         }
     }
 
-    function getPixel(uint256 x, uint256 y) external view returns (IBentoPlugin.Pixel memory) {
-        return IBentoPlugin(plugin).getPixel(x, y);
+    function getFactions() external view returns (IMapPlugin.Faction[] memory) {
+        uint256 maxFactions = IMapPlugin(plugin).factionMax();
+        IMapPlugin.Faction[] memory factions = new IMapPlugin.Faction[](maxFactions);
+        for (uint256 i = 0; i < maxFactions; i++) {
+            factions[i] = IMapPlugin(plugin).index_Faction(i);
+        }
+        return factions;
     }
 
-    function getRow(uint256 y) external view returns (IBentoPlugin.Pixel[] memory) {
-        return IBentoPlugin(plugin).getRow(y);
+    function getPixel(uint256 index) external view returns (IMapPlugin.Pixel memory) {
+        return IMapPlugin(plugin).getPixel(index);
     }
 
-    function getColumn(uint256 x) external view returns (IBentoPlugin.Pixel[] memory) {
-        return IBentoPlugin(plugin).getColumn(x);
-    }
-
-    function getGridChunk(uint256 startX, uint256 startY, uint256 endX, uint256 endY) external view returns (IBentoPlugin.Pixel[][] memory) {
-        return IBentoPlugin(plugin).getGridChunk(startX, startY, endX, endY);
+    function getPixels(uint256 startIndex, uint256 endIndex) external view returns (IMapPlugin.Pixel[] memory) {
+        return IMapPlugin(plugin).getPixels(startIndex, endIndex);
     }
 
 }
