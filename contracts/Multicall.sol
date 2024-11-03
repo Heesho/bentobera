@@ -31,9 +31,6 @@ interface IGauge {
     function getRewardForDuration(address token) external view returns (uint256);
     function balanceOf(address account) external view returns (uint256);
     function earned(address account, address token) external view returns (uint256);
-}
-
-interface IVoter {
     function getReward(address account) external;
 }
 
@@ -79,7 +76,7 @@ contract Multicall {
     }
 
     function getReward(address account) external {
-        IVoter(voter).getReward(account);
+        IGauge(IMapPlugin(plugin).getGauge()).getReward(account);
     }
 
     // Function to receive Ether. msg.data must be empty

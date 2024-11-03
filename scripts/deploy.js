@@ -26,11 +26,11 @@ async function getContracts() {
   // voter = await ethers.getContractAt("contracts/Voter.sol:Voter", "");
   plugin = await ethers.getContractAt(
     "contracts/MapPlugin.sol:MapPlugin",
-    "0x7fCEDb15d7a2C55894Ab4C07CD4E933fDe7E36f5"
+    "0x1d0B737feFcF45BC550a0B9c8a0f7f14BcCEce4d"
   );
   multicall = await ethers.getContractAt(
     "contracts/Multicall.sol:Multicall",
-    "0x5B868FCdCF8711253f509d2B69A494F358bf5d54"
+    "0xaC5e402d3fd1A6a685EE538Dc89ee27F19f4b082"
   );
   console.log("Contracts Retrieved");
 }
@@ -158,8 +158,8 @@ async function main() {
 
   // await verifyBase();
   // await verifyVoter();
-  // await verifyPlugin(wallet);
-  // await verifyMulticall();
+  await verifyPlugin(wallet);
+  await verifyMulticall();
 
   // await setUpSystem();
 }
