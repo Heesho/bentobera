@@ -6,6 +6,7 @@ const { execPath } = require("process");
 
 const AddressZero = "0x0000000000000000000000000000000000000000";
 const pointZeroOne = convert("0.01", 18);
+const pointZeroTwo = convert("0.02", 18);
 const pointOne = convert("0.1", 18);
 const one = convert("1", 18);
 
@@ -186,10 +187,56 @@ describe("local: test0", function () {
     console.log(await multicall.getAccountState(user0.address));
   });
 
-  /*
+  it("User0 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    await multicall.connect(user0).placeFor(user0.address, 2, 0, [0, 1], {
+      value: pointZeroTwo,
+    });
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
 
+  it("User0 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    await expect(
+      multicall
+        .connect(user0)
+        .placeFor(
+          user0.address,
+          2,
+          0,
+          [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+          {
+            value: pointZeroOne,
+          }
+        )
+    ).to.be.reverted;
+    await multicall
+      .connect(user0)
+      .placeFor(user0.address, 0, 1, [10, 11, 12, 13, 14, 15, 16, 17, 18, 19], {
+        value: pointOne,
+      });
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
 
-  it("User0 places tiles randomly", async function () {
+  it("Grid data", async function () {
+    console.log("******************************************************");
+    const gridChunk = await multicall.getPixels(0, 99); // Fetch 100 pixels for a 10x10 grid
+    // Visualize the grid
+    console.log("Grid Visualization:");
+    for (let row = 0; row < 10; row++) {
+      let rowColors = [];
+      for (let col = 0; col < 10; col++) {
+        const pixelIndex = row * 10 + col;
+        const pixel = gridChunk[pixelIndex];
+        rowColors.push(pixel.color.toString());
+      }
+      console.log(rowColors.join(" "));
+    }
+  });
+
+  it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
     for (let i = 0; i < 100; i++) {
@@ -197,9 +244,9 @@ describe("local: test0", function () {
         .connect(user0)
         .placeFor(
           user0.address,
-          [getRndInteger(0, 100)],
-          [getRndInteger(0, 100)],
+          getRndInteger(0, 3),
           getRndInteger(0, 9),
+          [getRndInteger(0, 10000)],
           {
             value: pointZeroOne,
           }
@@ -208,61 +255,182 @@ describe("local: test0", function () {
     console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 
-  it("User1 places tiles randomly", async function () {
+  it("User0 places tile", async function () {
     console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user1.getBalance()));
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user0.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User0 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user0.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User1 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user1)
         .placeFor(
           user1.address,
-          [getRndInteger(0, 100)],
-          [getRndInteger(0, 100)],
+          getRndInteger(0, 3),
           getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
           {
             value: pointZeroOne,
           }
         );
     }
-    console.log("ETH balance: ", divDec(await user1.getBalance()));
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 
-  it("User2 places tiles randomly", async function () {
+  it("User2 places tile", async function () {
     console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user2.getBalance()));
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user2)
         .placeFor(
           user2.address,
-          [getRndInteger(0, 100)],
-          [getRndInteger(0, 100)],
+          getRndInteger(0, 3),
           getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
           {
             value: pointZeroOne,
           }
         );
     }
-    console.log("ETH balance: ", divDec(await user2.getBalance()));
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 
-  it("User3 places tiles randomly", async function () {
+  it("User2 places tile", async function () {
     console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user3.getBalance()));
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
     for (let i = 0; i < 100; i++) {
       await multicall
-        .connect(user3)
+        .connect(user0)
         .placeFor(
-          user3.address,
-          [getRndInteger(0, 100)],
-          [getRndInteger(0, 100)],
+          user2.address,
+          getRndInteger(0, 3),
           getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
           {
             value: pointZeroOne,
           }
         );
     }
-    console.log("ETH balance: ", divDec(await user3.getBalance()));
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user2)
+        .placeFor(
+          user0.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user1.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user2.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("Grid data", async function () {
+    console.log("******************************************************");
+    const gridChunk = await multicall.getPixels(0, 99); // Fetch 100 pixels for a 10x10 grid
+    // Visualize the grid
+    console.log("Grid Visualization:");
+    for (let row = 0; row < 10; row++) {
+      let rowColors = [];
+      for (let col = 0; col < 10; col++) {
+        const pixelIndex = row * 10 + col;
+        const pixel = gridChunk[pixelIndex];
+        rowColors.push(pixel.color.toString());
+      }
+      console.log(rowColors.join(" "));
+    }
+  });
+
+  it("Get Factions", async function () {
+    console.log("******************************************************");
+    console.log(await multicall.getFactions());
+  });
+
+  it("Get Account State", async function () {
+    console.log("******************************************************");
+    console.log(await multicall.getAccountState(user0.address));
   });
 
   it("Gauge data", async function () {
@@ -275,18 +443,7 @@ describe("local: test0", function () {
     console.log(await multicall.getGauge(user1.address));
   });
 
-  it("Grid data", async function () {
-    console.log("******************************************************");
-    const gridChunk = await multicall.getGridChunk(0, 0, 24, 24);
-    // Visualize the grid
-    console.log("Grid Visualization:");
-    for (let i = 0; i < gridChunk.length; i++) {
-      let row = gridChunk[i].map((item) => item[0].toString()).join(" "); // Only take the color number
-      console.log(row);
-    }
-  });
-
-  it("User0 places tiles randomly", async function () {
+  it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
     for (let i = 0; i < 100; i++) {
@@ -294,9 +451,9 @@ describe("local: test0", function () {
         .connect(user0)
         .placeFor(
           user0.address,
-          [getRndInteger(0, 100)],
-          [getRndInteger(0, 100)],
+          getRndInteger(0, 3),
           getRndInteger(0, 9),
+          [getRndInteger(0, 10000)],
           {
             value: pointZeroOne,
           }
@@ -305,61 +462,776 @@ describe("local: test0", function () {
     console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 
-  it("User1 places tiles randomly", async function () {
+  it("User0 places tile", async function () {
     console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user1.getBalance()));
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user0.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User0 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user0.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User1 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user1)
         .placeFor(
           user1.address,
-          [getRndInteger(0, 100)],
-          [getRndInteger(0, 100)],
+          getRndInteger(0, 3),
           getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
           {
             value: pointZeroOne,
           }
         );
     }
-    console.log("ETH balance: ", divDec(await user1.getBalance()));
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 
-  it("User2 places tiles randomly", async function () {
+  it("User2 places tile", async function () {
     console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user2.getBalance()));
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user2)
         .placeFor(
           user2.address,
-          [getRndInteger(0, 100)],
-          [getRndInteger(0, 100)],
+          getRndInteger(0, 3),
           getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
           {
             value: pointZeroOne,
           }
         );
     }
-    console.log("ETH balance: ", divDec(await user2.getBalance()));
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 
-  it("User3 places tiles randomly", async function () {
+  it("User2 places tile", async function () {
     console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user3.getBalance()));
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
     for (let i = 0; i < 100; i++) {
       await multicall
-        .connect(user3)
+        .connect(user0)
         .placeFor(
-          user3.address,
-          [getRndInteger(0, 100)],
-          [getRndInteger(0, 100)],
+          user2.address,
+          getRndInteger(0, 3),
           getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
           {
             value: pointZeroOne,
           }
         );
     }
-    console.log("ETH balance: ", divDec(await user3.getBalance()));
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user2)
+        .placeFor(
+          user0.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user1.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user2.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("Grid data", async function () {
+    console.log("******************************************************");
+    const gridChunk = await multicall.getPixels(0, 99); // Fetch 100 pixels for a 10x10 grid
+    // Visualize the grid
+    console.log("Grid Visualization:");
+    for (let row = 0; row < 10; row++) {
+      let rowColors = [];
+      for (let col = 0; col < 10; col++) {
+        const pixelIndex = row * 10 + col;
+        const pixel = gridChunk[pixelIndex];
+        rowColors.push(pixel.color.toString());
+      }
+      console.log(rowColors.join(" "));
+    }
+  });
+
+  it("User0 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user0.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 10000)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User0 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user0.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User0 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user0.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User1 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user1.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user2)
+        .placeFor(
+          user2.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user2.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user2)
+        .placeFor(
+          user0.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user1.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user2.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("Grid data", async function () {
+    console.log("******************************************************");
+    const gridChunk = await multicall.getPixels(0, 99); // Fetch 100 pixels for a 10x10 grid
+    // Visualize the grid
+    console.log("Grid Visualization:");
+    for (let row = 0; row < 10; row++) {
+      let rowColors = [];
+      for (let col = 0; col < 10; col++) {
+        const pixelIndex = row * 10 + col;
+        const pixel = gridChunk[pixelIndex];
+        rowColors.push(pixel.color.toString());
+      }
+      console.log(rowColors.join(" "));
+    }
+  });
+
+  it("User0 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user0.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 10000)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User0 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user0.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User0 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user0.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User1 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user1.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user2)
+        .placeFor(
+          user2.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user2.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user2)
+        .placeFor(
+          user0.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user1.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user2.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("Grid data", async function () {
+    console.log("******************************************************");
+    const gridChunk = await multicall.getPixels(0, 99); // Fetch 100 pixels for a 10x10 grid
+    // Visualize the grid
+    console.log("Grid Visualization:");
+    for (let row = 0; row < 10; row++) {
+      let rowColors = [];
+      for (let col = 0; col < 10; col++) {
+        const pixelIndex = row * 10 + col;
+        const pixel = gridChunk[pixelIndex];
+        rowColors.push(pixel.color.toString());
+      }
+      console.log(rowColors.join(" "));
+    }
+  });
+
+  it("User0 places tiles in first row", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+    await multicall
+      .connect(user0)
+      .placeFor(user0.address, 0, 0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], {
+        value: pointOne,
+      });
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+  });
+
+  it("User1 places tiles in first row", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+    await multicall
+      .connect(user1)
+      .placeFor(user1.address, 0, 0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], {
+        value: pointOne,
+      });
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+  });
+
+  it("User2 places tiles in first row", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+    await multicall
+      .connect(user2)
+      .placeFor(user2.address, 0, 0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], {
+        value: pointOne,
+      });
+    console.log("ETH balance: ", divDec(await user1.getBalance()));
+  });
+
+  it("User0 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user0.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 10000)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User0 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user0.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User0 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user0.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User1 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user1.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user2)
+        .placeFor(
+          user2.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user0)
+        .placeFor(
+          user2.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user2)
+        .placeFor(
+          user0.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user1.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User2 places tile", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    for (let i = 0; i < 100; i++) {
+      await multicall
+        .connect(user1)
+        .placeFor(
+          user2.address,
+          getRndInteger(0, 3),
+          getRndInteger(0, 9),
+          [getRndInteger(0, 100)],
+          {
+            value: pointZeroOne,
+          }
+        );
+    }
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("Grid data", async function () {
+    console.log("******************************************************");
+    const gridChunk = await multicall.getPixels(0, 99); // Fetch 100 pixels for a 10x10 grid
+    // Visualize the grid
+    console.log("Grid Visualization:");
+    for (let row = 0; row < 10; row++) {
+      let rowColors = [];
+      for (let col = 0; col < 10; col++) {
+        const pixelIndex = row * 10 + col;
+        const pixel = gridChunk[pixelIndex];
+        rowColors.push(pixel.color.toString());
+      }
+      console.log(rowColors.join(" "));
+    }
+  });
+
+  it("Get Factions", async function () {
+    console.log("******************************************************");
+    console.log(await multicall.getFactions());
+  });
+
+  it("Get Account State", async function () {
+    console.log("******************************************************");
+    console.log(await multicall.getAccountState(user0.address));
   });
 
   it("Gauge data", async function () {
@@ -367,541 +1239,35 @@ describe("local: test0", function () {
     console.log(await multicall.getGauge(user0.address));
   });
 
-  it("Gauge data", async function () {
+  it("Grid data Colors", async function () {
     console.log("******************************************************");
-    console.log(await multicall.getGauge(user1.address));
-  });
-
-  it("Grid data", async function () {
-    console.log("******************************************************");
-    const gridChunk = await multicall.getGridChunk(0, 0, 24, 24);
+    const gridChunk = await multicall.getPixels(0, 99); // Fetch 100 pixels for a 10x10 grid
     // Visualize the grid
     console.log("Grid Visualization:");
-    for (let i = 0; i < gridChunk.length; i++) {
-      let row = gridChunk[i].map((item) => item[0].toString()).join(" "); // Only take the color number
-      console.log(row);
+    for (let row = 0; row < 10; row++) {
+      let rowColors = [];
+      for (let col = 0; col < 10; col++) {
+        const pixelIndex = row * 10 + col;
+        const pixel = gridChunk[pixelIndex];
+        rowColors.push(pixel.color.toString());
+      }
+      console.log(rowColors.join(" "));
     }
   });
 
-  it("User0 places tiles randomly", async function () {
+  it("Grid data Factions", async function () {
     console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user0.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user0)
-        .placeFor(
-          user0.address,
-          [getRndInteger(0, 100)],
-          [getRndInteger(0, 100)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user0.getBalance()));
-  });
-
-  it("User1 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user1.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user1)
-        .placeFor(
-          user1.address,
-          [getRndInteger(0, 100)],
-          [getRndInteger(0, 100)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user1.getBalance()));
-  });
-
-  it("User2 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user2.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user2)
-        .placeFor(
-          user2.address,
-          [getRndInteger(0, 100)],
-          [getRndInteger(0, 100)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user2.getBalance()));
-  });
-
-  it("User3 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user3.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user3)
-        .placeFor(
-          user3.address,
-          [getRndInteger(0, 100)],
-          [getRndInteger(0, 100)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user3.getBalance()));
-  });
-
-  it("Gauge data", async function () {
-    console.log("******************************************************");
-    console.log(await multicall.getGauge(user0.address));
-  });
-
-  it("Gauge data", async function () {
-    console.log("******************************************************");
-    console.log(await multicall.getGauge(user1.address));
-  });
-
-  it("Grid data", async function () {
-    console.log("******************************************************");
-    const gridChunk = await multicall.getGridChunk(0, 0, 24, 24);
+    const gridChunk = await multicall.getPixels(0, 99); // Fetch 100 pixels for a 10x10 grid
     // Visualize the grid
     console.log("Grid Visualization:");
-    for (let i = 0; i < gridChunk.length; i++) {
-      let row = gridChunk[i].map((item) => item[0].toString()).join(" "); // Only take the color number
-      console.log(row);
+    for (let row = 0; row < 10; row++) {
+      let rowColors = [];
+      for (let col = 0; col < 10; col++) {
+        const pixelIndex = row * 10 + col;
+        const pixel = gridChunk[pixelIndex];
+        rowColors.push(pixel.faction.toString());
+      }
+      console.log(rowColors.join(" "));
     }
   });
-
-  it("User0 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user0.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user0)
-        .placeFor(
-          user0.address,
-          [getRndInteger(0, 100)],
-          [getRndInteger(0, 100)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user0.getBalance()));
-  });
-
-  it("User1 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user1.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user1)
-        .placeFor(
-          user1.address,
-          [getRndInteger(0, 100)],
-          [getRndInteger(0, 100)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user1.getBalance()));
-  });
-
-  it("User2 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user2.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user2)
-        .placeFor(
-          user2.address,
-          [getRndInteger(0, 100)],
-          [getRndInteger(0, 100)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user2.getBalance()));
-  });
-
-  it("User3 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user3.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user3)
-        .placeFor(
-          user3.address,
-          [getRndInteger(0, 100)],
-          [getRndInteger(0, 100)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user3.getBalance()));
-  });
-
-  it("Gauge data", async function () {
-    console.log("******************************************************");
-    console.log(await multicall.getGauge(user0.address));
-  });
-
-  it("Gauge data", async function () {
-    console.log("******************************************************");
-    console.log(await multicall.getGauge(user1.address));
-  });
-
-  it("Grid data", async function () {
-    console.log("******************************************************");
-    const gridChunk = await multicall.getGridChunk(0, 0, 24, 24);
-    // Visualize the grid
-    console.log("Grid Visualization:");
-    for (let i = 0; i < gridChunk.length; i++) {
-      let row = gridChunk[i].map((item) => item[0].toString()).join(" "); // Only take the color number
-      console.log(row);
-    }
-  });
-
-  it("User0 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user0.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user0)
-        .placeFor(
-          user0.address,
-          [getRndInteger(0, 25)],
-          [getRndInteger(0, 25)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user0.getBalance()));
-  });
-
-  it("User1 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user1.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user1)
-        .placeFor(
-          user1.address,
-          [getRndInteger(0, 25)],
-          [getRndInteger(0, 25)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user1.getBalance()));
-  });
-
-  it("User2 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user2.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user2)
-        .placeFor(
-          user2.address,
-          [getRndInteger(0, 25)],
-          [getRndInteger(0, 25)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user2.getBalance()));
-  });
-
-  it("User3 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user3.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user3)
-        .placeFor(
-          user3.address,
-          [getRndInteger(0, 25)],
-          [getRndInteger(0, 25)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user3.getBalance()));
-  });
-
-  it("User0 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user0.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user0)
-        .placeFor(
-          user0.address,
-          [getRndInteger(0, 25)],
-          [getRndInteger(0, 25)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user0.getBalance()));
-  });
-
-  it("User1 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user1.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user1)
-        .placeFor(
-          user1.address,
-          [getRndInteger(0, 25)],
-          [getRndInteger(0, 25)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user1.getBalance()));
-  });
-
-  it("User2 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user2.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user2)
-        .placeFor(
-          user2.address,
-          [getRndInteger(0, 25)],
-          [getRndInteger(0, 25)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user2.getBalance()));
-  });
-
-  it("User3 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user3.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user3)
-        .placeFor(
-          user3.address,
-          [getRndInteger(0, 25)],
-          [getRndInteger(0, 25)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user3.getBalance()));
-  });
-
-  it("User0 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user0.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user0)
-        .placeFor(
-          user0.address,
-          [getRndInteger(0, 25)],
-          [getRndInteger(0, 25)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user0.getBalance()));
-  });
-
-  it("User1 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user1.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user1)
-        .placeFor(
-          user1.address,
-          [getRndInteger(0, 25)],
-          [getRndInteger(0, 25)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user1.getBalance()));
-  });
-
-  it("User2 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user2.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user2)
-        .placeFor(
-          user2.address,
-          [getRndInteger(0, 25)],
-          [getRndInteger(0, 25)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user2.getBalance()));
-  });
-
-  it("User3 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user3.getBalance()));
-    for (let i = 0; i < 100; i++) {
-      await multicall
-        .connect(user3)
-        .placeFor(
-          user3.address,
-          [getRndInteger(0, 25)],
-          [getRndInteger(0, 25)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user3.getBalance()));
-  });
-
-  it("Grid data", async function () {
-    console.log("******************************************************");
-    const gridChunk = await multicall.getGridChunk(0, 0, 24, 24);
-    // Visualize the grid
-    console.log("Grid Visualization:");
-    for (let i = 0; i < gridChunk.length; i++) {
-      let row = gridChunk[i].map((item) => item[0].toString()).join(" "); // Only take the color number
-      console.log(row);
-    }
-  });
-
-  it("User0 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user0.getBalance()));
-    for (let i = 0; i < 200; i++) {
-      await multicall
-        .connect(user0)
-        .placeFor(
-          user0.address,
-          [getRndInteger(0, 25)],
-          [getRndInteger(0, 25)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user0.getBalance()));
-  });
-
-  it("User1 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user1.getBalance()));
-    for (let i = 0; i < 200; i++) {
-      await multicall
-        .connect(user1)
-        .placeFor(
-          user1.address,
-          [getRndInteger(0, 25)],
-          [getRndInteger(0, 25)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user1.getBalance()));
-  });
-
-  it("User2 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user2.getBalance()));
-    for (let i = 0; i < 200; i++) {
-      await multicall
-        .connect(user2)
-        .placeFor(
-          user2.address,
-          [getRndInteger(0, 25)],
-          [getRndInteger(0, 25)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user2.getBalance()));
-  });
-
-  it("User3 places tiles randomly", async function () {
-    console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user3.getBalance()));
-    for (let i = 0; i < 200; i++) {
-      await multicall
-        .connect(user3)
-        .placeFor(
-          user3.address,
-          [getRndInteger(0, 25)],
-          [getRndInteger(0, 25)],
-          getRndInteger(0, 9),
-          {
-            value: pointZeroOne,
-          }
-        );
-    }
-    console.log("ETH balance: ", divDec(await user3.getBalance()));
-  });
-
-  it("Grid data", async function () {
-    console.log("******************************************************");
-    const gridChunk = await multicall.getGridChunk(0, 0, 24, 24);
-    // Visualize the grid
-    console.log("Grid Visualization:");
-    for (let i = 0; i < gridChunk.length; i++) {
-      let row = gridChunk[i].map((item) => item[0].toString()).join(" "); // Only take the color number
-      console.log(row);
-    }
-  });
-
-  */
 });
