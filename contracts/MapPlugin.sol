@@ -55,8 +55,8 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     uint256 public constant AMOUNT = 1;
     uint256 public constant CAPACITY = 10000;
 
-    string public constant PROTOCOL = "BentoBera";
-    string public constant NAME = "BENTO";  
+    string public constant PROTOCOL = "Gumball";
+    string public constant NAME = "BentoBera";  
 
     /*----------  STATE VARIABLES  --------------------------------------*/
 
@@ -151,12 +151,12 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     }
 
     function claimAndDistribute() external nonReentrant {
-        uint256 balance = IERC20(token).balanceOf(address(this));
+        uint256 balance = token.balanceOf(address(this));
         if (balance > DURATION) {
             uint256 treasuryFee = balance / 5;
-            IERC20(token).safeTransfer(treasury, treasuryFee);
-            IERC20(token).safeApprove(bribe, 0);
-            IERC20(token).safeApprove(bribe, balance - treasuryFee);
+            token.safeTransfer(treasury, treasuryFee);
+            token.safeApprove(bribe, 0);
+            token.safeApprove(bribe, balance - treasuryFee);
             IBribe(bribe).notifyRewardAmount(address(token), balance - treasuryFee);
         }
     }
@@ -200,8 +200,8 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         index_Faction[faction].totalPlaced += amount;
         account_Faction_Placed[account][faction] += amount;
 
-        IERC20(token).safeTransferFrom(msg.sender, index_Faction[faction].owner, fee);
-        IERC20(token).safeTransferFrom(msg.sender, address(this), cost - fee);
+        token.safeTransferFrom(msg.sender, index_Faction[faction].owner, fee);
+        token.safeTransferFrom(msg.sender, address(this), cost - fee);
 
         IGauge(gauge)._deposit(account, amount);
         VaultToken(vaultToken).mint(address(this), amount);
