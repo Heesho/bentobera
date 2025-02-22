@@ -3,7 +3,8 @@ const { config } = require("dotenv");
 require("@nomiclabs/hardhat-waffle");
 require("@nomicfoundation/hardhat-verify");
 
-const CHAIN_ID = 80084; // berachain bartio
+// const CHAIN_ID = 80084; // berachain bartio
+const CHAIN_ID = 80094; // berachain
 
 config();
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "";

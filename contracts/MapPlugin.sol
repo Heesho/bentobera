@@ -55,7 +55,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     uint256 public constant AMOUNT = 1;
     uint256 public constant CAPACITY = 10000;
 
-    string public constant PROTOCOL = "Gumball";
+    string public constant PROTOCOL = "Future Girls Inc";
     string public constant NAME = "BentoBera";  
 
     /*----------  STATE VARIABLES  --------------------------------------*/
@@ -74,14 +74,13 @@ contract MapPlugin is ReentrancyGuard, Ownable {
 
     address public treasury;
     uint256 public placePrice = 0.01 ether;
-    uint256 public colorMax = 9;
     uint256 public factionMax;
     uint256 public totalPlaced;
 
     struct Pixel {
         address account;
         uint256 faction;
-        uint256 color;
+        string color;
     }
 
     struct Faction {
@@ -90,7 +89,6 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         uint256 totalPlaced;
     }
 
-    // mapping(uint256 => Pixel) public index_Pixel;
     Pixel[CAPACITY] public index_Pixel;
 
     mapping(uint256 => Faction) public index_Faction;
@@ -114,13 +112,12 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     event Plugin__Placed(
         address indexed account,
         uint256 faction,
-        uint256 color,
-        uint256 index
+        uint256 index,
+        string color
     );
     event Plugin__ClaimedAnDistributed();
     event Plugin__TreasurySet(address treasury);
     event Plugin__PlacePriceSet(uint256 placePrice);
-    event Plugin__ColorMaxSet(uint256 colorMax);
 
     /*----------  MODIFIERS  --------------------------------------------*/
 
@@ -164,12 +161,12 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     function placeFor(
         address account,
         uint256 faction,
-        uint256 color,
+        string calldata color,
         uint256[] calldata indexes
     ) external nonReentrant {
         if (faction >= factionMax) revert Plugin__InvalidFaction();
-        if (color >= colorMax) revert Plugin__InvalidColor();
         if (indexes.length == 0) revert Plugin__InvalidZeroInput();
+        if (!validateColorFormat(color)) revert Plugin__InvalidColor();
 
         for (uint256 i = 0; i < indexes.length; i++) {
             if (indexes[i] >= CAPACITY) revert Plugin__InvalidIndex();
@@ -186,7 +183,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
                 IRewardVault(rewardVault).delegateWithdraw(prevPixel.account, AMOUNT);
                 VaultToken(vaultToken).burn(address(this), AMOUNT);
             }
-            emit Plugin__Placed(account, faction, color, indexes[i]);
+            emit Plugin__Placed(account, faction, indexes[i], color);
         }
 
         uint256 amount = AMOUNT * indexes.length;
@@ -228,17 +225,29 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         emit Plugin__PlacePriceSet(placePrice);
     }
 
-    function setColorMax(uint256 _colorMax) external onlyOwner {
-        colorMax = _colorMax;
-        emit Plugin__ColorMaxSet(colorMax);
-    }
-
     function setGauge(address _gauge) external onlyVoter {
         gauge = _gauge;
     }
 
     function setBribe(address _bribe) external onlyVoter {
         bribe = _bribe;
+    }
+
+    function validateColorFormat(string memory color) internal pure returns (bool) {
+        bytes memory colorBytes = bytes(color);
+        if (colorBytes.length != 7) return false; // "#RRGGBB" format
+        if (colorBytes[0] != '#') return false;
+        
+        for (uint i = 1; i < 7; i++) {
+            bytes1 char = colorBytes[i];
+            bool isHexDigit = (
+                (char >= '0' && char <= '9') ||
+                (char >= 'a' && char <= 'f') ||
+                (char >= 'A' && char <= 'F')
+            );
+            if (!isHexDigit) return false;
+        }
+        return true;
     }
 
     /*----------  VIEW FUNCTIONS  ---------------------------------------*/
@@ -291,7 +300,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         return rewardVault;
     }
 
-    function getPixel(uint256 index) public view returns (address account, uint256 faction, uint256 color) {
+    function getPixel(uint256 index) public view returns (address account, uint256 faction, string memory color) {
         Pixel memory pixel = index_Pixel[index];
         return (pixel.account, pixel.faction, pixel.color); 
     }

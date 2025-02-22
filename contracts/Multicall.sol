@@ -7,14 +7,14 @@ interface IMapPlugin {
     struct Pixel {
         address account;
         uint256 faction;
-        uint256 color;
+        string color;
     }
     struct Faction {
         address owner;
         uint256 balance;
         uint256 totalPlaced;
     }
-    function placeFor(address account, uint256 faction, uint256 color, uint256[] calldata indexes) external;
+    function placeFor(address account, uint256 faction, string calldata color, uint256[] calldata indexes) external;
     function getGauge() external view returns (address);
     function placePrice() external view returns (uint256);
     function getPixel(uint256 index) external view returns (Pixel memory);
@@ -68,7 +68,7 @@ contract Multicall {
         oBERO = _oBERO;
     }
 
-    function placeFor(address account, uint256 faction, uint256 color, uint256[] calldata indexes) external payable {
+    function placeFor(address account, uint256 faction, string calldata color, uint256[] calldata indexes) external payable {
         IWBERA(base).deposit{value: msg.value}();
         IERC20(base).safeApprove(plugin, 0);
         IERC20(base).safeApprove(plugin, msg.value);
