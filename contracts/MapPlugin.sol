@@ -76,6 +76,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     uint256 public placePrice = 0.01 ether;
     uint256 public factionMax;
     uint256 public totalPlaced;
+    bool public autoBribe = true;
 
     struct Pixel {
         address account;
@@ -115,7 +116,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         uint256 index,
         string color
     );
-    event Plugin__ClaimedAnDistributed();
+    event Plugin__ClaimedAndDistributed(uint256 amount);
     event Plugin__TreasurySet(address treasury);
     event Plugin__PlacePriceSet(uint256 placePrice);
 
@@ -150,11 +151,19 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     function claimAndDistribute() external nonReentrant {
         uint256 balance = token.balanceOf(address(this));
         if (balance > DURATION) {
-            uint256 treasuryFee = balance / 5;
-            token.safeTransfer(treasury, treasuryFee);
-            token.safeApprove(bribe, 0);
-            token.safeApprove(bribe, balance - treasuryFee);
-            IBribe(bribe).notifyRewardAmount(address(token), balance - treasuryFee);
+            uint256 treasuryFee = 0;
+            if (treasury != address(0)) {
+                treasuryFee = balance / 9;
+                token.safeTransfer(treasury, treasuryFee);
+            }
+            if (autoBribe) {
+                token.safeApprove(bribe, 0);
+                token.safeApprove(bribe, balance - treasuryFee);
+                IBribe(bribe).notifyRewardAmount(address(token), balance - treasuryFee);
+            } else {
+                token.safeTransfer(treasury, balance - treasuryFee);
+            }
+            emit Plugin__ClaimedAndDistributed(balance);
         }
     }
 
