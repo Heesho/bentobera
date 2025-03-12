@@ -8,11 +8,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 interface IGauge {
     function _deposit(address account, uint256 amount) external;
-
     function _withdraw(address account, uint256 amount) external;
-
     function balanceOf(address account) external view returns (uint256);
-
     function totalSupply() external view returns (uint256);
 }
 
@@ -24,18 +21,17 @@ interface IVoter {
     function OTOKEN() external view returns (address);
 }
 
-interface IBerachainRewardsVaultFactory {
-    function createRewardsVault(address _vaultToken) external returns (address);
+interface IBerachainRewardVaultFactory {
+    function createRewardVault(address _vaultToken) external returns (address);
 }
 
 interface IRewardVault {
     function delegateStake(address account, uint256 amount) external;
-
     function delegateWithdraw(address account, uint256 amount) external;
 }
 
 contract VaultToken is ERC20, Ownable {
-    constructor() ERC20("Bull Ish Vault Token", "BIVT") {}
+    constructor() ERC20("BentoBera", "BentoBera") {}
 
     function mint(address to, uint256 amount) external onlyOwner {
         _mint(to, amount);
@@ -145,7 +141,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         OTOKEN = IVoter(_voter).OTOKEN();
 
         vaultToken = address(new VaultToken());
-        rewardVault = IBerachainRewardsVaultFactory(_vaultFactory).createRewardsVault(address(vaultToken));
+        rewardVault = IBerachainRewardVaultFactory(_vaultFactory).createRewardVault(address(vaultToken));
     }
 
     function claimAndDistribute() external nonReentrant {
