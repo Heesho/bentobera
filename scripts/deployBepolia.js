@@ -113,6 +113,23 @@ async function main() {
 
   //   await verifyPlugin(wallet);
   //   await verifyMulticall();
+
+  // await plugin.createFaction(wallet.address);
+
+  // await plugin.setPlacePrice(ethers.utils.parseEther("0.001"));
+
+  console.log("Factions: ", await plugin.factionMax());
+  console.log("Price: ", await plugin.placePrice());
+  console.log("Pixel 0: ", await plugin.getPixel(0));
+
+  await multicall.placeFor(wallet.address, 0, "#4f0095", [6], {
+    value: ethers.utils.parseEther("0.001"),
+    gasPrice: ethers.gasPrice,
+  });
+
+  await sleep(10000);
+
+  console.log("Pixel 0: ", await plugin.getPixel(0));
 }
 
 main()

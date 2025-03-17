@@ -49,7 +49,6 @@ contract MapPlugin is ReentrancyGuard, Ownable {
 
     uint256 public constant DURATION = 7 days;
     uint256 public constant AMOUNT = 1;
-    uint256 public constant CAPACITY = 10000;
 
     string public constant PROTOCOL = "Future Girls Inc";
     string public constant NAME = "BentoBera";  
@@ -68,7 +67,9 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     address[] private assetTokens;
     address[] private bribeTokens;
 
+
     address public treasury;
+    uint256 public capacity = 100;
     uint256 public placePrice = 0.01 ether;
     uint256 public factionMax;
     uint256 public totalPlaced;
@@ -86,7 +87,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         uint256 totalPlaced;
     }
 
-    Pixel[CAPACITY] public index_Pixel;
+    mapping(uint256 => Pixel) public index_Pixel;
 
     mapping(uint256 => Faction) public index_Faction;
     mapping(address => uint256) public factionOwner_Index;
@@ -103,6 +104,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     error Plugin__InvalidIndex();
     error Plugin__InvalidZeroInput();
     error Plugin__NotAuthorizedVoter();
+    error Plugin__InvalidCapacity();
 
     /*----------  EVENTS ------------------------------------------------*/
 
@@ -115,6 +117,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     event Plugin__ClaimedAndDistributed(uint256 amount);
     event Plugin__TreasurySet(address treasury);
     event Plugin__PlacePriceSet(uint256 placePrice);
+    event Plugin__CapacitySet(uint256 capacity);
 
     /*----------  MODIFIERS  --------------------------------------------*/
 
@@ -169,12 +172,12 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         string calldata color,
         uint256[] calldata indexes
     ) external nonReentrant {
-        if (faction >= factionMax) revert Plugin__InvalidFaction();
+        if (faction == 0 || faction > factionMax) revert Plugin__InvalidFaction();
         if (indexes.length == 0) revert Plugin__InvalidZeroInput();
         if (!validateColorFormat(color)) revert Plugin__InvalidColor();
 
         for (uint256 i = 0; i < indexes.length; i++) {
-            if (indexes[i] >= CAPACITY) revert Plugin__InvalidIndex();
+            if (indexes[i] >= capacity) revert Plugin__InvalidIndex();
 
             Pixel memory prevPixel = index_Pixel[indexes[i]];
             index_Pixel[indexes[i]] = Pixel(account, faction, color);
@@ -215,19 +218,25 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     /*----------  RESTRICTED FUNCTIONS  ---------------------------------*/
 
     function createFaction(address _owner) external onlyOwner {
+        factionMax++;
         index_Faction[factionMax] = Faction(_owner, 0, 0);
         factionOwner_Index[_owner] = factionMax;
-        factionMax++;
-    }
-
-    function setTreasury(address _treasury) external onlyOwner {
-        treasury = _treasury;
-        emit Plugin__TreasurySet(treasury);
     }
 
     function setPlacePrice(uint256 _placePrice) external onlyOwner {
         placePrice = _placePrice;
         emit Plugin__PlacePriceSet(placePrice);
+    }
+
+    function setCapacity(uint256 _capacity) external onlyOwner {
+        if (_capacity <= capacity) revert Plugin__InvalidCapacity();
+        capacity = _capacity;
+        emit Plugin__CapacitySet(capacity);
+    }
+
+    function setTreasury(address _treasury) external onlyOwner {
+        treasury = _treasury;
+        emit Plugin__TreasurySet(treasury);
     }
 
     function setGauge(address _gauge) external onlyVoter {
