@@ -21,11 +21,11 @@ let plugin, multicall;
 async function getContracts() {
   plugin = await ethers.getContractAt(
     "contracts/MapPlugin.sol:MapPlugin",
-    "0xBa98A17f23BBfC47990810A7D42A1a89dBd42C7F"
+    "0xEc76C06258D32890F492c6575708D12d0AF3B9c9"
   );
   multicall = await ethers.getContractAt(
     "contracts/Multicall.sol:Multicall",
-    "0x455543efB1D19E779E484B02863909fC90972f93"
+    "0x3A9963107A87a63e8af2051eB30D5a3B1a684A57"
   );
   console.log("Contracts Retrieved");
 }
@@ -107,9 +107,9 @@ async function main() {
 
   await getContracts();
 
-  await deployPlugin(wallet);
-  await deployMulticall();
-  await printDeployment();
+  // await deployPlugin(wallet);
+  // await deployMulticall();
+  // await printDeployment();
 
   // await verifyPlugin(wallet);
   // await verifyMulticall();
