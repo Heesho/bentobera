@@ -67,7 +67,6 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     address[] private assetTokens;
     address[] private bribeTokens;
 
-
     address public treasury;
     uint256 public capacity = 100;
     uint256 public placePrice = 0.01 ether;

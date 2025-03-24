@@ -21,11 +21,11 @@ let plugin, multicall;
 async function getContracts() {
   plugin = await ethers.getContractAt(
     "contracts/MapPlugin.sol:MapPlugin",
-    "0xEfbcFD2666ea6f7Ebd87bF1166722d4f37dE5EF1"
+    "0xBa98A17f23BBfC47990810A7D42A1a89dBd42C7F"
   );
   multicall = await ethers.getContractAt(
     "contracts/Multicall.sol:Multicall",
-    "0x0918617D41C0Fdab908dA5083e062602DDCd4793"
+    "0x455543efB1D19E779E484B02863909fC90972f93"
   );
   console.log("Contracts Retrieved");
 }
@@ -107,29 +107,29 @@ async function main() {
 
   await getContracts();
 
-  //   await deployPlugin(wallet);
-  //   await deployMulticall();
-  //   await printDeployment();
+  // await deployPlugin(wallet);
+  // await deployMulticall();
+  // await printDeployment();
 
-  //   await verifyPlugin(wallet);
-  //   await verifyMulticall();
+  // await verifyPlugin(wallet);
+  // await verifyMulticall();
 
   // await plugin.createFaction(wallet.address);
 
   // await plugin.setPlacePrice(ethers.utils.parseEther("0.001"));
 
-  console.log("Factions: ", await plugin.factionMax());
-  console.log("Price: ", await plugin.placePrice());
-  console.log("Pixel 0: ", await plugin.getPixel(0));
+  // console.log("Factions: ", await plugin.factionMax());
+  // console.log("Price: ", await plugin.placePrice());
+  // console.log("Pixel 0: ", await plugin.getPixel(0));
 
-  await multicall.placeFor(wallet.address, 0, "#4f0095", [6], {
-    value: ethers.utils.parseEther("0.001"),
-    gasPrice: ethers.gasPrice,
-  });
+  // await multicall.placeFor(wallet.address, 0, "#4f0095", [6], {
+  //   value: ethers.utils.parseEther("0.001"),
+  //   gasPrice: ethers.gasPrice,
+  // });
 
-  await sleep(10000);
+  // await sleep(10000);
 
-  console.log("Pixel 0: ", await plugin.getPixel(0));
+  // console.log("Pixel 0: ", await plugin.getPixel(0));
 }
 
 main()
