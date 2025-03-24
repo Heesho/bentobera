@@ -107,9 +107,9 @@ async function main() {
 
   await getContracts();
 
-  // await deployPlugin(wallet);
-  // await deployMulticall();
-  // await printDeployment();
+  await deployPlugin(wallet);
+  await deployMulticall();
+  await printDeployment();
 
   // await verifyPlugin(wallet);
   // await verifyMulticall();

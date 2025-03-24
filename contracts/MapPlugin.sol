@@ -83,7 +83,8 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     struct Faction {
         address owner;
         uint256 balance;
-        uint256 totalPlaced;
+        uint256 placed;
+        bool isActive;
     }
 
     mapping(uint256 => Pixel) public index_Pixel;
@@ -99,6 +100,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     /*----------  ERRORS ------------------------------------------------*/
 
     error Plugin__InvalidFaction();
+    error Plugin__FactionInactive();
     error Plugin__InvalidColor();
     error Plugin__InvalidIndex();
     error Plugin__InvalidZeroInput();
@@ -117,6 +119,9 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     event Plugin__TreasurySet(address treasury);
     event Plugin__PlacePriceSet(uint256 placePrice);
     event Plugin__CapacitySet(uint256 capacity);
+    event Plugin__FactionCreated(uint256 faction);
+    event Plugin__FactionActiveSet(uint256 faction, bool isActive);
+    event Plugin__AutoBribeSet(bool autoBribe);
 
     /*----------  MODIFIERS  --------------------------------------------*/
 
@@ -172,6 +177,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         uint256[] calldata indexes
     ) external nonReentrant {
         if (faction == 0 || faction > factionMax) revert Plugin__InvalidFaction();
+        if (!index_Faction[faction].isActive) revert Plugin__FactionInactive();
         if (indexes.length == 0) revert Plugin__InvalidZeroInput();
         if (!validateColorFormat(color)) revert Plugin__InvalidColor();
 
@@ -201,7 +207,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         account_Placed[account] += amount;
         index_Faction[faction].balance += amount;
         account_Faction_Balance[account][faction] += amount;
-        index_Faction[faction].totalPlaced += amount;
+        index_Faction[faction].placed += amount;
         account_Faction_Placed[account][faction] += amount;
 
         token.safeTransferFrom(msg.sender, index_Faction[faction].owner, fee);
@@ -218,8 +224,19 @@ contract MapPlugin is ReentrancyGuard, Ownable {
 
     function createFaction(address _owner) external onlyOwner {
         factionMax++;
-        index_Faction[factionMax] = Faction(_owner, 0, 0);
+        index_Faction[factionMax] = Faction(_owner, 0, 0, true);
         factionOwner_Index[_owner] = factionMax;
+        emit Plugin__FactionCreated(factionMax);
+    }
+
+    function setFactionActive(uint256 _faction, bool _isActive) external onlyOwner {
+        index_Faction[_faction].isActive = _isActive;
+        emit Plugin__FactionActiveSet(_faction, _isActive);
+    }
+
+    function setAutoBribe(bool _autoBribe) external onlyOwner {
+        autoBribe = _autoBribe;
+        emit Plugin__AutoBribeSet(autoBribe);
     }
 
     function setPlacePrice(uint256 _placePrice) external onlyOwner {
@@ -311,6 +328,10 @@ contract MapPlugin is ReentrancyGuard, Ownable {
 
     function getRewardVault() public view returns (address) {
         return rewardVault;
+    }
+
+    function getFaction(uint256 _faction) public view returns (address owner, uint256 balance, uint256 placed, bool isActive) {
+        return (index_Faction[_faction].owner, index_Faction[_faction].balance, index_Faction[_faction].placed, index_Faction[_faction].isActive);
     }
 
     function getPixel(uint256 index) public view returns (address account, uint256 faction, string memory color) {
