@@ -115,7 +115,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         uint256 index,
         string color
     );
-    event Plugin__ClaimedAndDistributed(uint256 amount);
+    event Plugin__ClaimedAndDistributed(uint256 bribeAmount, uint256 treasuryAmount);
     event Plugin__TreasurySet(address treasury);
     event Plugin__PlacePriceSet(uint256 placePrice);
     event Plugin__CapacitySet(uint256 capacity);
@@ -163,10 +163,11 @@ contract MapPlugin is ReentrancyGuard, Ownable {
                 token.safeApprove(bribe, 0);
                 token.safeApprove(bribe, balance - treasuryFee);
                 IBribe(bribe).notifyRewardAmount(address(token), balance - treasuryFee);
+                emit Plugin__ClaimedAndDistributed(balance - treasuryFee, treasuryFee);
             } else {
                 token.safeTransfer(treasury, balance - treasuryFee);
+                emit Plugin__ClaimedAndDistributed(0, balance);
             }
-            emit Plugin__ClaimedAndDistributed(balance);
         }
     }
 
