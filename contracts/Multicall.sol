@@ -13,6 +13,7 @@ interface IMapPlugin {
         address owner;
         uint256 balance;
         uint256 totalPlaced;
+        bool isActive;
     }
     function placeFor(address account, uint256 faction, string calldata color, uint256[] calldata indexes) external;
     function getGauge() external view returns (address);
