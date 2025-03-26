@@ -18,7 +18,7 @@ let owner, treasury, user0, user1, user2, user3, faction0, faction1, faction2;
 let base, voter, vaultFactory;
 let plugin, multicall;
 
-describe.only("local: test1", function () {
+describe("local: test1", function () {
   before("Initial set up", async function () {
     console.log("Begin Initialization");
 

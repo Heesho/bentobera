@@ -129,6 +129,8 @@ async function main() {
 
   // await sleep(10000);
 
+  // await plugin.connect(wallet).setCapacity(10000);
+
   // console.log("Pixel 0: ", await plugin.getPixel(0));
 }
 
