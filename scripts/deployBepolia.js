@@ -25,7 +25,7 @@ async function getContracts() {
   );
   multicall = await ethers.getContractAt(
     "contracts/Multicall.sol:Multicall",
-    "0x3bb4fe67236020e441EdB26c64a33AA5742Fc49E"
+    "0x09117A6C49aE3f56B142Ab529dfcA4E600C77F3e"
   );
   console.log("Contracts Retrieved");
 }
@@ -120,9 +120,9 @@ async function main() {
 
   // console.log("Factions: ", await plugin.factionMax());
   // console.log("Price: ", await plugin.placePrice());
-  // console.log("Pixel 0: ", await plugin.getPixel(0));
+  // console.log("Pixel 0: ", await plugin.getPixel(6));
 
-  // await multicall.placeFor(wallet.address, 0, "#4f0095", [6], {
+  // await multicall.placeFor(wallet.address, 1, "#4f0095", [6], {
   //   value: ethers.utils.parseEther("0.001"),
   //   gasPrice: ethers.gasPrice,
   // });

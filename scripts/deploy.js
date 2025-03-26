@@ -28,10 +28,10 @@ async function getContracts() {
     "contracts/MapPlugin.sol:MapPlugin",
     "0x2786201354ba8cc4Bb2908b59B7f345722bD9904"
   );
-  multicall = await ethers.getContractAt(
-    "contracts/Multicall.sol:Multicall",
-    "0xfd95d3e80C71779fc38e9d4C05a4859BAFeC4922"
-  );
+  // multicall = await ethers.getContractAt(
+  //   "contracts/Multicall.sol:Multicall",
+  //   "0xfd95d3e80C71779fc38e9d4C05a4859BAFeC4922"
+  // );
   console.log("Contracts Retrieved");
 }
 

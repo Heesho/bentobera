@@ -18,6 +18,7 @@ interface IMapPlugin {
     function placeFor(address account, uint256 faction, string calldata color, uint256[] calldata indexes) external;
     function getGauge() external view returns (address);
     function placePrice() external view returns (uint256);
+    function getFaction(uint256 index) external view returns (Faction memory);
     function getPixel(uint256 index) external view returns (Pixel memory);
     function getPixels(uint256 startIndex, uint256 endIndex) external view returns (Pixel[] memory);
     function factionMax() external view returns (uint256);
@@ -116,7 +117,7 @@ contract Multicall {
         uint256 maxFactions = IMapPlugin(plugin).factionMax();
         IMapPlugin.Faction[] memory factions = new IMapPlugin.Faction[](maxFactions);
         for (uint256 i = 0; i < maxFactions; i++) {
-            factions[i] = IMapPlugin(plugin).index_Faction(i);
+            factions[i] = IMapPlugin(plugin).getFaction(i + 1);
         }
         return factions;
     }
