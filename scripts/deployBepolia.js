@@ -13,12 +13,26 @@ const OBERO_ADDRESS = "0x935938EC3a925d09365e6Bd1f4eec04faF870b6e";
 const VAULT_FACTORY_ADDRESS = "0x94Ad6Ac84f6C6FbA8b8CCbD71d9f4f101def52a8";
 
 // Contract Variables
-let plugin, multicall;
+let plugin, multicall, WBERA;
+
+// WBERA ABI
+const WBERA_ABI = [
+  "function balanceOf(address owner) view returns (uint256)",
+  "function transfer(address to, uint amount) returns (bool)",
+  "function approve(address spender, uint256 amount) external returns (bool)",
+  "function allowance(address owner, address spender) view returns (uint256)",
+  "function totalSupply() view returns (uint256)",
+  "function deposit() external payable",
+  "function withdraw(uint256 amount) external",
+];
 
 /*===================================================================*/
 /*===========================  CONTRACT DATA  =======================*/
 
 async function getContracts() {
+  // Initialize provider
+  provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL);
+  await provider.ready; // Ensure the provider is connected
   plugin = await ethers.getContractAt(
     "contracts/MapPlugin.sol:MapPlugin",
     "0xEc76C06258D32890F492c6575708D12d0AF3B9c9"
@@ -27,6 +41,7 @@ async function getContracts() {
     "contracts/Multicall.sol:Multicall",
     "0x09117A6C49aE3f56B142Ab529dfcA4E600C77F3e"
   );
+  WBERA = new ethers.Contract(WBERA_ADDRESS, WBERA_ABI, provider);
   console.log("Contracts Retrieved");
 }
 
@@ -132,6 +147,14 @@ async function main() {
   // await plugin.connect(wallet).setCapacity(10000);
 
   // console.log("Pixel 0: ", await plugin.getPixel(0));
+
+  // console.log(
+  //   "WBERA Balance: ",
+  //   await WBERA.connect(wallet).balanceOf(wallet.address)
+  // );
+
+  // await WBERA.connect(wallet).withdraw(
+  //   await WBERA.connect(wallet).balanceOf(wallet.address)
 }
 
 main()
