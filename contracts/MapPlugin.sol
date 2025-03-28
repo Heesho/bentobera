@@ -158,6 +158,14 @@ contract MapPlugin is ReentrancyGuard, Ownable {
      */
     address public treasury;
     /**
+     * @notice The developer address receives a portion of the fees.
+     */
+    address public developer;
+    /**
+     * @notice The incentives address receives a portion of the fees.
+     */
+    address public incentives;
+    /**
      * @notice The maximum index allowed for placing pixels (initially 100, can be extended).
      *         If `capacity = 100`, valid pixel indexes are from 0 to 99, for instance.
      */
@@ -179,7 +187,11 @@ contract MapPlugin is ReentrancyGuard, Ownable {
      * @notice Whether bribe distribution is automatically handled by the contract.
      *         If true, the majority of fees are directly sent to the bribe contract.
      */
-    bool public autoBribe = true;
+    bool public activeBribes = true;
+    /**
+     * @notice Whether incentives are active.
+     */
+    bool public activeIncentives = false;
 
     /**
      * @notice Represents a single pixel on the grid.
@@ -255,7 +267,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         uint256 index,
         string color
     );
-    event Plugin__ClaimedAndDistributed(uint256 bribeAmount, uint256 treasuryAmount);
+    event Plugin__ClaimedAndDistributed(uint256 bribeAmount, uint256 incentivesAmount, uint256 developerAmount, uint256 treasuryAmount);
     event Plugin__TreasurySet(address treasury);
     event Plugin__PlacePriceSet(uint256 placePrice);
     event Plugin__CapacitySet(uint256 capacity);
@@ -301,26 +313,46 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     }
 
     /**
-     * @notice Distributes accumulated BERA fees to bribes (and possibly treasury).
-     *         If autoBribe is true, the majority is sent to the bribe contract.
-     *         Otherwise, it is sent to the treasury.
+     * @notice Distributes accumulated BERA fees (95% of total placement fees):
+     *         - 42% to bribes if activeBribes is true, otherwise to incentives
+     *         - 42% to incentives if activeIncentives is true, otherwise to bribes
+     *         - 8% to developer
+     *         - 8% to treasury (remaining balance)
+     * @dev Final distribution of total fees:
+     *      - 5% to faction owner (taken during placement)
+     *      - 39.9% to bribes
+     *      - 39.9% to incentives
+     *      - 7.6% to developer
+     *      - 7.6% to treasury
      */
     function claimAndDistribute() external nonReentrant {
         uint256 balance = token.balanceOf(address(this));
         if (balance > DURATION) {
-            uint256 treasuryFee = 0;
-            if (treasury != address(0)) {
-                treasuryFee = balance / 9;
-                token.safeTransfer(treasury, treasuryFee);
-            }
-            if (autoBribe) {
-                token.safeApprove(bribe, 0);
-                token.safeApprove(bribe, balance - treasuryFee);
-                IBribe(bribe).notifyRewardAmount(address(token), balance - treasuryFee);
-                emit Plugin__ClaimedAndDistributed(balance - treasuryFee, treasuryFee);
+            uint256 bribeAmount = balance * 42 / 100;
+            uint256 incentivesAmount = balance * 42 / 100;
+            uint256 developerAmount = balance * 8 / 100;
+            uint256 treasuryAmount = balance - bribeAmount - incentivesAmount - developerAmount;
+            
+            token.safeTransfer(developer, developerAmount);
+            token.safeTransfer(treasury, treasuryAmount);
+
+            uint256 totalIncentiveAmount = bribeAmount + incentivesAmount;
+            if (activeBribes) {
+                if (activeIncentives) {
+                    token.safeTransfer(incentives, incentivesAmount);
+                    token.safeApprove(bribe, 0);
+                    token.safeApprove(bribe, bribeAmount);
+                    IBribe(bribe).notifyRewardAmount(address(token), bribeAmount);
+                    emit Plugin__ClaimedAndDistributed(bribeAmount, incentivesAmount, developerAmount, treasuryAmount);
+                } else {
+                    token.safeApprove(bribe, 0);
+                    token.safeApprove(bribe, totalIncentiveAmount);
+                    IBribe(bribe).notifyRewardAmount(address(token), totalIncentiveAmount);
+                    emit Plugin__ClaimedAndDistributed(totalIncentiveAmount, 0, developerAmount, treasuryAmount);
+                }
             } else {
-                token.safeTransfer(treasury, balance - treasuryFee);
-                emit Plugin__ClaimedAndDistributed(0, balance);
+                token.safeTransfer(incentives, totalIncentiveAmount);
+                emit Plugin__ClaimedAndDistributed(0, totalIncentiveAmount, developerAmount, treasuryAmount);
             }
         }
     }
@@ -364,7 +396,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
 
         uint256 amount = AMOUNT * indexes.length;
         uint256 cost = placePrice * indexes.length;
-        uint256 fee = cost / 10;
+        uint256 fee = cost / 20;
 
         totalPlaced += amount;
         account_Placed[account] += amount;
@@ -408,11 +440,11 @@ contract MapPlugin is ReentrancyGuard, Ownable {
 
     /**
      * @notice Owner can enable/disable auto-bribe (where fees are sent to the bribe contract instead of the treasury).
-     * @param _autoBribe The new boolean setting.
+     * @param _activeBribes The new boolean setting.
      */
-    function setAutoBribe(bool _autoBribe) external onlyOwner {
-        autoBribe = _autoBribe;
-        emit Plugin__AutoBribeSet(autoBribe);
+    function setAutoBribe(bool _activeBribes) external onlyOwner {
+        activeBribes = _activeBribes;
+        emit Plugin__AutoBribeSet(activeBribes);
     }
 
     /**
