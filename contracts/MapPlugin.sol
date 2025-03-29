@@ -258,6 +258,8 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     error Plugin__InvalidZeroInput();
     error Plugin__NotAuthorizedVoter();
     error Plugin__InvalidCapacity();
+    error Plugin__InvalidZeroAddress();
+    error Plugin__NotAuthorizedDeveloper();
 
     /*----------  EVENTS ------------------------------------------------*/
 
@@ -268,12 +270,15 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         string color
     );
     event Plugin__ClaimedAndDistributed(uint256 bribeAmount, uint256 incentivesAmount, uint256 developerAmount, uint256 treasuryAmount);
-    event Plugin__TreasurySet(address treasury);
     event Plugin__PlacePriceSet(uint256 placePrice);
     event Plugin__CapacitySet(uint256 capacity);
     event Plugin__FactionCreated(uint256 faction);
     event Plugin__FactionActiveSet(uint256 faction, bool isActive);
-    event Plugin__AutoBribeSet(bool autoBribe);
+    event Plugin__ActiveBribesSet(bool activeBribes);
+    event Plugin__ActiveIncentivesSet(bool activeIncentives);
+    event Plugin__TreasurySet(address treasury);
+    event Plugin__DeveloperSet(address developer);
+    event Plugin__IncentivesSet(address incentives);
 
     /*----------  MODIFIERS  --------------------------------------------*/
 
@@ -299,6 +304,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         address[] memory _assetTokens, // [WBERA]
         address[] memory _bribeTokens, // [WBERA]
         address _treasury,
+        address _developer,
         address _vaultFactory
     ) {
         token = IERC20(_token);
@@ -306,8 +312,10 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         assetTokens = _assetTokens;
         bribeTokens = _bribeTokens;
         treasury = _treasury;
-        OTOKEN = IVoter(_voter).OTOKEN();
+        developer = _developer;
+        incentives = _treasury;
 
+        OTOKEN = IVoter(_voter).OTOKEN();
         vaultToken = address(new VaultToken());
         rewardVault = IBerachainRewardVaultFactory(_vaultFactory).createRewardVault(address(vaultToken));
     }
@@ -442,9 +450,18 @@ contract MapPlugin is ReentrancyGuard, Ownable {
      * @notice Owner can enable/disable auto-bribe (where fees are sent to the bribe contract instead of the treasury).
      * @param _activeBribes The new boolean setting.
      */
-    function setAutoBribe(bool _activeBribes) external onlyOwner {
+    function setActiveBribes(bool _activeBribes) external onlyOwner {
         activeBribes = _activeBribes;
-        emit Plugin__AutoBribeSet(activeBribes);
+        emit Plugin__ActiveBribesSet(activeBribes);
+    }
+
+    /**
+     * @notice Owner can enable/disable active incentives (where fees are sent to the incentives contract instead of the treasury).
+     * @param _activeIncentives The new boolean setting.
+     */
+    function setActiveIncentives(bool _activeIncentives) external onlyOwner {
+        activeIncentives = _activeIncentives;
+        emit Plugin__ActiveIncentivesSet(activeIncentives);
     }
 
     /**
@@ -471,8 +488,26 @@ contract MapPlugin is ReentrancyGuard, Ownable {
      * @param _treasury The new treasury address.
      */
     function setTreasury(address _treasury) external onlyOwner {
+        if (_treasury == address(0)) revert Plugin__InvalidZeroAddress();
         treasury = _treasury;
         emit Plugin__TreasurySet(treasury);
+    }
+
+    /**
+     * @notice Owner can update the developer address.
+     * @param _developer The new developer address.
+     */
+    function setDeveloper(address _developer) external {
+        if (msg.sender != developer) revert Plugin__NotAuthorizedDeveloper();
+        if (_developer == address(0)) revert Plugin__InvalidZeroAddress();
+        developer = _developer;
+        emit Plugin__DeveloperSet(developer);
+    }
+
+    function setIncentives(address _incentives) external onlyOwner {
+        if (_incentives == address(0)) revert Plugin__InvalidZeroAddress();
+        incentives = _incentives;
+        emit Plugin__IncentivesSet(incentives);
     }
 
     /**
