@@ -14,25 +14,17 @@ function getRndInteger(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-let owner, treasury, user0, user1, user2, user3, faction0, faction1, faction2;
-let base, voter, vaultFactory;
+let owner, treasury, user0, user1, user2, user3, owner0, owner1, owner2;
+let base, voter, vaultFactory, factionFactory;
 let plugin, multicall;
+let faction0, faction1, faction2;
 
 describe("local: test1", function () {
   before("Initial set up", async function () {
     console.log("Begin Initialization");
 
-    [
-      owner,
-      treasury,
-      user0,
-      user1,
-      user2,
-      user3,
-      faction0,
-      faction1,
-      faction2,
-    ] = await ethers.getSigners();
+    [owner, treasury, user0, user1, user2, user3, owner0, owner1, owner2] =
+      await ethers.getSigners();
 
     const baseArtifact = await ethers.getContractFactory("Base");
     base = await baseArtifact.deploy();
@@ -48,6 +40,12 @@ describe("local: test1", function () {
     vaultFactory = await vaultFactoryArtifact.deploy();
     console.log("- Vault Factory Initialized");
 
+    const factionFactoryArtifact = await ethers.getContractFactory(
+      "FactionFactory"
+    );
+    factionFactory = await factionFactoryArtifact.deploy();
+    console.log("- Faction Factory Initialized");
+
     const pluginArtifact = await ethers.getContractFactory("MapPlugin");
     plugin = await pluginArtifact.deploy(
       base.address,
@@ -56,6 +54,7 @@ describe("local: test1", function () {
       [base.address],
       treasury.address,
       treasury.address,
+      factionFactory.address,
       vaultFactory.address
     );
     console.log("- Plugin Initialized");
@@ -72,7 +71,11 @@ describe("local: test1", function () {
     );
     console.log("- Multicall Initialized");
 
-    await plugin.createFaction(user0.address);
+    await plugin.createFaction(owner0.address);
+    faction0 = await ethers.getContractAt(
+      "Faction",
+      await plugin.index_Faction(1)
+    );
 
     console.log("Initialization Complete");
     console.log();
@@ -85,9 +88,11 @@ describe("local: test1", function () {
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
-    await multicall.connect(user0).placeFor(user0.address, 1, "#06e647", [0], {
-      value: pointZeroOne,
-    });
+    await multicall
+      .connect(user0)
+      .placeFor(user0.address, 1, [0], ["#06e647"], {
+        value: pointZeroOne,
+      });
     console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 
@@ -95,9 +100,11 @@ describe("local: test1", function () {
     console.log("******************************************************");
     const factions = await multicall.getFactions();
     console.log(factions);
-    await multicall.connect(user0).placeFor(user0.address, 1, "#06e647", [0], {
-      value: pointZeroOne,
-    });
+    await multicall
+      .connect(user0)
+      .placeFor(user0.address, 1, [0], ["#06e647"], {
+        value: pointZeroOne,
+      });
     console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 });

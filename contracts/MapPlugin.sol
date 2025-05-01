@@ -57,7 +57,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
 
     uint256 public constant DURATION = 7 days;
-    uint256 public constant AMOUNT = 1;
+    uint256 public constant AMOUNT = 1 ether;
 
     string public constant PROTOCOL = "Future Girls Inc";
     string public constant NAME = "BentoBera";  
@@ -92,20 +92,17 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         string color;
     }
 
-    struct Faction {
-        address faction;
-        bool isActive;
-    }
-
     mapping(uint256 => Pixel) public index_Pixel;
-    mapping(uint256 => Faction) public index_Faction;
+    mapping(uint256 => address) public index_Faction;
     mapping(address => uint256) public faction_Index;
+    mapping(address => bool) public faction_Active;
 
     error Plugin__InvalidFaction();
     error Plugin__FactionInactive();
     error Plugin__InvalidColor();
     error Plugin__InvalidIndex();
     error Plugin__InvalidZeroInput();
+    error Plugin__ArrayMismatch();
     error Plugin__NotAuthorizedVoter();
     error Plugin__InvalidCapacity();
     error Plugin__InvalidZeroAddress();
@@ -121,7 +118,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     event Plugin__PlacePriceSet(uint256 placePrice);
     event Plugin__CapacitySet(uint256 capacity);
     event Plugin__FactionCreated(uint256 factionIndex, address faction);
-    event Plugin__FactionActiveSet(uint256 faction, bool isActive);
+    event Plugin__FactionActiveSet(address faction, bool isActive);
     event Plugin__ActiveBribesSet(bool activeBribes);
     event Plugin__ActiveIncentivesSet(bool activeIncentives);
     event Plugin__TreasurySet(address treasury);
@@ -140,8 +137,8 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         address[] memory _bribeTokens, // [WBERA]
         address _treasury,
         address _developer,
-        address _vaultFactory,
-        address _factionFactory
+        address _factionFactory,
+        address _vaultFactory
     ) {
         token = IERC20(_token);
         voter = _voter;
@@ -196,10 +193,10 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         string[] calldata colors
     ) external nonReentrant {
         if (factionIndex == 0 || factionIndex > factionMax) revert Plugin__InvalidFaction();
-        if (!index_Faction[factionIndex].isActive) revert Plugin__FactionInactive();
         if (indexes.length == 0) revert Plugin__InvalidZeroInput();
-
-        address faction = index_Faction[factionIndex].faction;
+        if (colors.length != indexes.length) revert Plugin__ArrayMismatch();
+        address faction = index_Faction[factionIndex];
+        if (!faction_Active[faction]) revert Plugin__FactionInactive();
 
         for (uint256 i = 0; i < indexes.length; i++) {
             if (indexes[i] >= capacity) revert Plugin__InvalidIndex();
@@ -234,13 +231,14 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     function createFaction(address _owner) external onlyOwner {
         factionMax++;
         address faction = IFactionFactory(factionFactory).create(address(this), _owner);
-        index_Faction[factionMax] = Faction(faction, true);
+        index_Faction[factionMax] = faction;
         faction_Index[faction] = factionMax;
+        faction_Active[faction] = true;
         emit Plugin__FactionCreated(factionMax, faction);
     }
 
-    function setFactionActive(uint256 _faction, bool _isActive) external onlyOwner {
-        index_Faction[_faction].isActive = _isActive;
+    function setFactionActive(address _faction, bool _isActive) external onlyOwner {
+        faction_Active[_faction] = _isActive;
         emit Plugin__FactionActiveSet(_faction, _isActive);
     }
 
@@ -341,7 +339,9 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     }
 
     function getFaction(uint256 index) public view returns (address faction, bool isActive) {
-        return (index_Faction[index].faction, index_Faction[index].isActive);
+        faction = index_Faction[index];
+        isActive = faction_Active[faction];
+        return (faction, isActive);
     }
 
     function getPixel(uint256 index) public view returns (address account, address faction, string memory color) {

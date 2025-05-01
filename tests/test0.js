@@ -14,25 +14,17 @@ function getRndInteger(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-let owner, treasury, user0, user1, user2, user3, faction0, faction1, faction2;
-let base, voter, vaultFactory;
+let owner, treasury, user0, user1, user2, user3, owner0, owner1, owner2;
+let base, voter, vaultFactory, factionFactory;
 let plugin, multicall;
+let faction0, faction1, faction2;
 
 describe("local: test0", function () {
   before("Initial set up", async function () {
     console.log("Begin Initialization");
 
-    [
-      owner,
-      treasury,
-      user0,
-      user1,
-      user2,
-      user3,
-      faction0,
-      faction1,
-      faction2,
-    ] = await ethers.getSigners();
+    [owner, treasury, user0, user1, user2, user3, owner0, owner1, owner2] =
+      await ethers.getSigners();
 
     const baseArtifact = await ethers.getContractFactory("Base");
     base = await baseArtifact.deploy();
@@ -48,6 +40,12 @@ describe("local: test0", function () {
     vaultFactory = await vaultFactoryArtifact.deploy();
     console.log("- Vault Factory Initialized");
 
+    const factionFactoryArtifact = await ethers.getContractFactory(
+      "FactionFactory"
+    );
+    factionFactory = await factionFactoryArtifact.deploy();
+    console.log("- Faction Factory Initialized");
+
     const pluginArtifact = await ethers.getContractFactory("MapPlugin");
     plugin = await pluginArtifact.deploy(
       base.address,
@@ -56,6 +54,7 @@ describe("local: test0", function () {
       [base.address],
       treasury.address,
       treasury.address,
+      factionFactory.address,
       vaultFactory.address
     );
     console.log("- Plugin Initialized");
@@ -72,8 +71,6 @@ describe("local: test0", function () {
     );
     console.log("- Multicall Initialized");
 
-    await plugin.createFaction(user0.address);
-
     console.log("Initialization Complete");
     console.log();
   });
@@ -86,7 +83,18 @@ describe("local: test0", function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
     await expect(
-      multicall.connect(user0).placeFor(user0.address, 0, "#5406e6", [0], {
+      multicall.connect(user0).placeFor(user0.address, 0, [0], ["#5406e6"], {
+        value: pointZeroOne,
+      })
+    ).to.be.revertedWith("Plugin__InvalidFaction");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("User0 places tiles randomly", async function () {
+    console.log("******************************************************");
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+    await expect(
+      multicall.connect(user0).placeFor(user0.address, 1, [0], ["#5406e6"], {
         value: pointZeroOne,
       })
     ).to.be.revertedWith("Plugin__InvalidFaction");
@@ -95,17 +103,33 @@ describe("local: test0", function () {
 
   it("Owners creates factions", async function () {
     console.log("******************************************************");
-    await plugin.createFaction(faction0.address);
-    await plugin.createFaction(faction1.address);
-    await plugin.createFaction(faction2.address);
+    await plugin.createFaction(owner0.address);
+    faction0 = await ethers.getContractAt(
+      "Faction",
+      await plugin.index_Faction(1)
+    );
+    await plugin.createFaction(owner1.address);
+    faction1 = await ethers.getContractAt(
+      "Faction",
+      await plugin.index_Faction(2)
+    );
+    await plugin.createFaction(owner2.address);
+    faction2 = await ethers.getContractAt(
+      "Faction",
+      await plugin.index_Faction(3)
+    );
   });
 
   it("User0 places tile", async function () {
     console.log("******************************************************");
+    console.log("Faction 0: ", await plugin.index_Faction(1));
+    console.log("Faction 0 owner: ", await faction0.owner());
     console.log("ETH balance: ", divDec(await user0.getBalance()));
-    await multicall.connect(user0).placeFor(user0.address, 1, "#06e647", [0], {
-      value: pointZeroOne,
-    });
+    await multicall
+      .connect(user0)
+      .placeFor(user0.address, 1, [0], ["#06e647"], {
+        value: pointZeroOne,
+      });
     console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 
@@ -114,9 +138,26 @@ describe("local: test0", function () {
     console.log("ETH balance: ", divDec(await user1.getBalance()));
     await multicall
       .connect(user1)
-      .placeFor(user1.address, 1, "#e6cf06", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], {
-        value: pointOne,
-      });
+      .placeFor(
+        user1.address,
+        1,
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [
+          "#e6cf06",
+          "#e6cf06",
+          "#e6cf06",
+          "#e6cf06",
+          "#e6cf06",
+          "#e6cf06",
+          "#e6cf06",
+          "#e6cf06",
+          "#e6cf06",
+          "#e6cf06",
+        ],
+        {
+          value: pointOne,
+        }
+      );
     console.log("ETH balance: ", divDec(await user1.getBalance()));
   });
 
@@ -156,27 +197,33 @@ describe("local: test0", function () {
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
-    await multicall.connect(user0).placeFor(user0.address, 1, "#33353a", [0], {
-      value: pointZeroOne,
-    });
+    await multicall
+      .connect(user0)
+      .placeFor(user0.address, 1, [0], ["#33353a"], {
+        value: pointZeroOne,
+      });
     console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
-    await multicall.connect(user0).placeFor(user0.address, 1, "#56aa77", [0], {
-      value: pointZeroOne,
-    });
+    await multicall
+      .connect(user0)
+      .placeFor(user0.address, 1, [0], ["#56aa77"], {
+        value: pointZeroOne,
+      });
     console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
-    await multicall.connect(user0).placeFor(user0.address, 2, "#ffffff", [0], {
-      value: pointZeroOne,
-    });
+    await multicall
+      .connect(user0)
+      .placeFor(user0.address, 2, [0], ["#ffffff"], {
+        value: pointZeroOne,
+      });
     console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 
@@ -195,7 +242,7 @@ describe("local: test0", function () {
     console.log("ETH balance: ", divDec(await user0.getBalance()));
     await multicall
       .connect(user0)
-      .placeFor(user0.address, 2, "#2e2c00", [0, 1], {
+      .placeFor(user0.address, 2, [0, 1], ["#2e2c00", "#2e2c00"], {
         value: pointZeroTwo,
       });
     console.log("ETH balance: ", divDec(await user0.getBalance()));
@@ -210,8 +257,19 @@ describe("local: test0", function () {
         .placeFor(
           user0.address,
           2,
-          "#0cff00",
           [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+          [
+            "#0cff00",
+            "#0cff00",
+            "#0cff00",
+            "#0cff00",
+            "#0cff00",
+            "#0cff00",
+            "#0cff00",
+            "#0cff00",
+            "#0cff00",
+            "#0cff00",
+          ],
           {
             value: pointZeroOne,
           }
@@ -222,8 +280,19 @@ describe("local: test0", function () {
       .placeFor(
         user0.address,
         1,
-        "#ffc1c1",
         [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+        [
+          "#ffc1c1",
+          "#ffc1c1",
+          "#ffc1c1",
+          "#ffc1c1",
+          "#ffc1c1",
+          "#ffc1c1",
+          "#ffc1c1",
+          "#ffc1c1",
+          "#ffc1c1",
+          "#ffc1c1",
+        ],
         {
           value: pointOne,
         }
@@ -250,14 +319,15 @@ describe("local: test0", function () {
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#700202");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user0)
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#700202",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -269,14 +339,15 @@ describe("local: test0", function () {
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#374648");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user0)
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#374648",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -288,14 +359,15 @@ describe("local: test0", function () {
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#009b14");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user1)
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#009b14",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -307,14 +379,15 @@ describe("local: test0", function () {
   it("User1 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#252524");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user1)
         .placeFor(
           user1.address,
           getRndInteger(1, 3),
-          "#252524",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -326,14 +399,15 @@ describe("local: test0", function () {
   it("User2 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#dadbff");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user2)
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#dadbff",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -345,14 +419,15 @@ describe("local: test0", function () {
   it("User2 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#0004a2");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user0)
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#0004a2",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -364,14 +439,15 @@ describe("local: test0", function () {
   it("User2 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#00ff4e");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user2)
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#00ff4e",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -383,14 +459,15 @@ describe("local: test0", function () {
   it("User2 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#880043");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user1)
         .placeFor(
           user1.address,
           getRndInteger(1, 3),
-          "#880043",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -402,14 +479,15 @@ describe("local: test0", function () {
   it("User2 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#010c06");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user1)
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#010c06",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -457,14 +535,15 @@ describe("local: test0", function () {
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#888888");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user0)
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#888888",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -476,14 +555,15 @@ describe("local: test0", function () {
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#ffffff");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user0)
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#ffffff",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -495,14 +575,15 @@ describe("local: test0", function () {
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#000000");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user1)
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#000000",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -514,14 +595,15 @@ describe("local: test0", function () {
   it("User1 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#a500ff");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user1)
         .placeFor(
           user1.address,
           getRndInteger(1, 3),
-          "#a500ff",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -533,14 +615,15 @@ describe("local: test0", function () {
   it("User2 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#1f1d20");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user2)
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#1f1d20",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -552,14 +635,15 @@ describe("local: test0", function () {
   it("User2 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#ff6cb5");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user0)
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#ff6cb5",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -571,14 +655,15 @@ describe("local: test0", function () {
   it("User2 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#ff6300");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user2)
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#ff6300",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -590,14 +675,15 @@ describe("local: test0", function () {
   it("User2 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#4ba1b0");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user1)
         .placeFor(
           user1.address,
           getRndInteger(1, 3),
-          "#4ba1b0",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -609,14 +695,15 @@ describe("local: test0", function () {
   it("User2 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#e17503");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user1)
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#e17503",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -644,14 +731,15 @@ describe("local: test0", function () {
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#919191");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user0)
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#919191",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -663,14 +751,15 @@ describe("local: test0", function () {
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#f100ff");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user0)
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#f100ff",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -682,14 +771,15 @@ describe("local: test0", function () {
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#202020");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user1)
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#202020",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -701,14 +791,15 @@ describe("local: test0", function () {
   it("User1 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#000000");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user1)
         .placeFor(
           user1.address,
           getRndInteger(1, 3),
-          "#000000",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -719,14 +810,15 @@ describe("local: test0", function () {
     it("User2 places tile", async function () {
       console.log("******************************************************");
       console.log("ETH balance: ", divDec(await user0.getBalance()));
+      const colors = new Array(1).fill("#baffa2");
       for (let i = 0; i < 100; i++) {
         await multicall
           .connect(user2)
           .placeFor(
             user2.address,
             getRndInteger(1, 3),
-            "#000000",
             [getRndInteger(0, 100)],
+            colors,
             {
               value: pointZeroOne,
             }
@@ -739,14 +831,15 @@ describe("local: test0", function () {
   it("User2 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#baffa2");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user0)
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#baffa2",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -758,14 +851,15 @@ describe("local: test0", function () {
   it("User2 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#a2e4ff");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user2)
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#a2e4ff",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -777,14 +871,15 @@ describe("local: test0", function () {
   it("User2 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#008374");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user1)
         .placeFor(
           user1.address,
           getRndInteger(1, 3),
-          "#008374",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -796,14 +891,15 @@ describe("local: test0", function () {
   it("User2 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#260083");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user1)
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#260083",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -831,14 +927,15 @@ describe("local: test0", function () {
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#dd159e");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user0)
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#dd159e",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -850,14 +947,15 @@ describe("local: test0", function () {
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#01c96f");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user0)
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#01c96f",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -869,14 +967,15 @@ describe("local: test0", function () {
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
+    const colors = new Array(1).fill("#000000");
     for (let i = 0; i < 100; i++) {
       await multicall
         .connect(user1)
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#00ffef",
           [getRndInteger(0, 100)],
+          colors,
           {
             value: pointZeroOne,
           }
@@ -894,8 +993,8 @@ describe("local: test0", function () {
         .placeFor(
           user1.address,
           getRndInteger(1, 3),
-          "#060707",
           [getRndInteger(0, 100)],
+          ["#060707"],
           {
             value: pointZeroOne,
           }
@@ -913,8 +1012,8 @@ describe("local: test0", function () {
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#000000",
           [getRndInteger(0, 100)],
+          ["#000000"],
           {
             value: pointZeroOne,
           }
@@ -932,8 +1031,8 @@ describe("local: test0", function () {
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#000000",
           [getRndInteger(0, 100)],
+          ["#000000"],
           {
             value: pointZeroOne,
           }
@@ -951,8 +1050,8 @@ describe("local: test0", function () {
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#000000",
           [getRndInteger(0, 100)],
+          ["#000000"],
           {
             value: pointZeroOne,
           }
@@ -970,8 +1069,8 @@ describe("local: test0", function () {
         .placeFor(
           user1.address,
           getRndInteger(1, 3),
-          "#ffffff",
           [getRndInteger(0, 100)],
+          ["#ffffff"],
           {
             value: pointZeroOne,
           }
@@ -989,8 +1088,8 @@ describe("local: test0", function () {
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#ffffff",
           [getRndInteger(0, 100)],
+          ["#ffffff"],
           {
             value: pointZeroOne,
           }
@@ -1018,9 +1117,10 @@ describe("local: test0", function () {
   it("User0 places tiles in first row", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user1.getBalance()));
+    const colors = new Array(10).fill("#325f27");
     await multicall
       .connect(user0)
-      .placeFor(user0.address, 1, "#325f27", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], {
+      .placeFor(user0.address, 1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], colors, {
         value: pointOne,
       });
     console.log("ETH balance: ", divDec(await user1.getBalance()));
@@ -1029,9 +1129,10 @@ describe("local: test0", function () {
   it("User1 places tiles in first row", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user1.getBalance()));
+    const colors = new Array(10).fill("#b3ffee");
     await multicall
       .connect(user1)
-      .placeFor(user1.address, 1, "#b3ffee", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], {
+      .placeFor(user1.address, 1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], colors, {
         value: pointOne,
       });
     console.log("ETH balance: ", divDec(await user1.getBalance()));
@@ -1040,9 +1141,10 @@ describe("local: test0", function () {
   it("User2 places tiles in first row", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user1.getBalance()));
+    const colors = new Array(10).fill("#af3501");
     await multicall
       .connect(user2)
-      .placeFor(user2.address, 1, "#af3501", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], {
+      .placeFor(user2.address, 1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], colors, {
         value: pointOne,
       });
     console.log("ETH balance: ", divDec(await user1.getBalance()));
@@ -1057,8 +1159,8 @@ describe("local: test0", function () {
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#3c2c26",
           [getRndInteger(0, 100)],
+          ["#3c2c26"],
           {
             value: pointZeroOne,
           }
@@ -1076,8 +1178,8 @@ describe("local: test0", function () {
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#0b0088",
           [getRndInteger(0, 100)],
+          ["#0b0088"],
           {
             value: pointZeroOne,
           }
@@ -1095,8 +1197,8 @@ describe("local: test0", function () {
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#064522",
           [getRndInteger(0, 100)],
+          ["#064522"],
           {
             value: pointZeroOne,
           }
@@ -1114,8 +1216,8 @@ describe("local: test0", function () {
         .placeFor(
           user1.address,
           getRndInteger(1, 3),
-          "#b200ff",
           [getRndInteger(0, 100)],
+          ["#b200ff"],
           {
             value: pointZeroOne,
           }
@@ -1133,8 +1235,8 @@ describe("local: test0", function () {
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#0cbd00",
           [getRndInteger(0, 100)],
+          ["#0cbd00"],
           {
             value: pointZeroOne,
           }
@@ -1152,8 +1254,8 @@ describe("local: test0", function () {
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#038dc5",
           [getRndInteger(0, 100)],
+          ["#038dc5"],
           {
             value: pointZeroOne,
           }
@@ -1171,8 +1273,8 @@ describe("local: test0", function () {
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#c5033a",
           [getRndInteger(0, 100)],
+          ["#c5033a"],
           {
             value: pointZeroOne,
           }
@@ -1190,8 +1292,8 @@ describe("local: test0", function () {
         .placeFor(
           user1.address,
           getRndInteger(1, 3),
-          "#5f550f",
           [getRndInteger(0, 100)],
+          ["#5f550f"],
           {
             value: pointZeroOne,
           }
@@ -1209,8 +1311,8 @@ describe("local: test0", function () {
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#5f550f",
           [getRndInteger(0, 100)],
+          ["#5f550f"],
           {
             value: pointZeroOne,
           }
@@ -1331,8 +1433,8 @@ describe("local: test0", function () {
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#064522",
           [getRndInteger(0, 200)],
+          ["#064522"],
           {
             value: pointZeroOne,
           }
@@ -1350,8 +1452,8 @@ describe("local: test0", function () {
         .placeFor(
           user1.address,
           getRndInteger(1, 3),
-          "#b200ff",
           [getRndInteger(0, 200)],
+          ["#b200ff"],
           {
             value: pointZeroOne,
           }
@@ -1369,8 +1471,8 @@ describe("local: test0", function () {
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#0cbd00",
           [getRndInteger(0, 200)],
+          ["#0cbd00"],
           {
             value: pointZeroOne,
           }
@@ -1388,8 +1490,8 @@ describe("local: test0", function () {
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#064522",
           [getRndInteger(0, 200)],
+          ["#064522"],
           {
             value: pointZeroOne,
           }
@@ -1407,8 +1509,8 @@ describe("local: test0", function () {
         .placeFor(
           user1.address,
           getRndInteger(1, 3),
-          "#b200ff",
           [getRndInteger(0, 200)],
+          ["#b200ff"],
           {
             value: pointZeroOne,
           }
@@ -1426,8 +1528,8 @@ describe("local: test0", function () {
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#0cbd00",
           [getRndInteger(0, 200)],
+          ["#0cbd00"],
           {
             value: pointZeroOne,
           }
@@ -1445,8 +1547,8 @@ describe("local: test0", function () {
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#064522",
           [getRndInteger(0, 200)],
+          ["#064522"],
           {
             value: pointZeroOne,
           }
@@ -1464,8 +1566,8 @@ describe("local: test0", function () {
         .placeFor(
           user1.address,
           getRndInteger(1, 3),
-          "#b200ff",
           [getRndInteger(0, 200)],
+          ["#b200ff"],
           {
             value: pointZeroOne,
           }
@@ -1483,8 +1585,8 @@ describe("local: test0", function () {
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#0cbd00",
           [getRndInteger(0, 200)],
+          ["#0cbd00"],
           {
             value: pointZeroOne,
           }
@@ -1502,8 +1604,8 @@ describe("local: test0", function () {
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#064522",
           [getRndInteger(0, 200)],
+          ["#064522"],
           {
             value: pointZeroOne,
           }
@@ -1521,8 +1623,8 @@ describe("local: test0", function () {
         .placeFor(
           user1.address,
           getRndInteger(1, 3),
-          "#b200ff",
           [getRndInteger(0, 200)],
+          ["#b200ff"],
           {
             value: pointZeroOne,
           }
@@ -1540,8 +1642,8 @@ describe("local: test0", function () {
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#0cbd00",
           [getRndInteger(0, 200)],
+          ["#0cbd00"],
           {
             value: pointZeroOne,
           }
@@ -1559,8 +1661,8 @@ describe("local: test0", function () {
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#064522",
           [getRndInteger(0, 200)],
+          ["#064522"],
           {
             value: pointZeroOne,
           }
@@ -1578,8 +1680,8 @@ describe("local: test0", function () {
         .placeFor(
           user1.address,
           getRndInteger(1, 3),
-          "#b200ff",
           [getRndInteger(0, 200)],
+          ["#b200ff"],
           {
             value: pointZeroOne,
           }
@@ -1597,8 +1699,8 @@ describe("local: test0", function () {
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#0cbd00",
           [getRndInteger(0, 200)],
+          ["#0cbd00"],
           {
             value: pointZeroOne,
           }
@@ -1616,8 +1718,8 @@ describe("local: test0", function () {
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#064522",
           [getRndInteger(0, 200)],
+          ["#064522"],
           {
             value: pointZeroOne,
           }
@@ -1635,8 +1737,8 @@ describe("local: test0", function () {
         .placeFor(
           user1.address,
           getRndInteger(1, 3),
-          "#b200ff",
           [getRndInteger(0, 200)],
+          ["#b200ff"],
           {
             value: pointZeroOne,
           }
@@ -1654,8 +1756,8 @@ describe("local: test0", function () {
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#0cbd00",
           [getRndInteger(0, 200)],
+          ["#0cbd00"],
           {
             value: pointZeroOne,
           }
@@ -1673,8 +1775,8 @@ describe("local: test0", function () {
         .placeFor(
           user0.address,
           getRndInteger(1, 3),
-          "#064522",
           [getRndInteger(0, 200)],
+          ["#064522"],
           {
             value: pointZeroOne,
           }
@@ -1692,8 +1794,8 @@ describe("local: test0", function () {
         .placeFor(
           user1.address,
           getRndInteger(1, 3),
-          "#b200ff",
           [getRndInteger(0, 200)],
+          ["#b200ff"],
           {
             value: pointZeroOne,
           }
@@ -1711,8 +1813,8 @@ describe("local: test0", function () {
         .placeFor(
           user2.address,
           getRndInteger(1, 3),
-          "#0cbd00",
           [getRndInteger(0, 200)],
+          ["#0cbd00"],
           {
             value: pointZeroOne,
           }

@@ -112,7 +112,7 @@ contract Faction is ReentrancyGuard, Ownable {
         emit Faction__RewardNotified(_rewardsToken, reward);
     }
 
-    function _deposit(uint256 amount, address account) 
+    function _deposit(address account, uint256 amount) 
         external
         onlyPlugin
         nonZeroInput(amount)
@@ -123,7 +123,7 @@ contract Faction is ReentrancyGuard, Ownable {
         emit Faction__Deposited(account, amount);
     }
 
-    function _withdraw(uint256 amount, address account) 
+    function _withdraw(address account, uint256 amount) 
         external
         onlyPlugin
         nonZeroInput(amount)
