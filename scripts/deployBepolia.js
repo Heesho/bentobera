@@ -13,7 +13,7 @@ const OBERO_ADDRESS = "0x935938EC3a925d09365e6Bd1f4eec04faF870b6e";
 const VAULT_FACTORY_ADDRESS = "0x94Ad6Ac84f6C6FbA8b8CCbD71d9f4f101def52a8";
 
 // Contract Variables
-let plugin, multicall, WBERA;
+let plugin, multicall, factionFactory, WBERA;
 
 // WBERA ABI
 const WBERA_ABI = [
@@ -33,13 +33,17 @@ async function getContracts() {
   // Initialize provider
   provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL);
   await provider.ready; // Ensure the provider is connected
+  factionFactory = await ethers.getContractAt(
+    "contracts/FactionFactory.sol:FactionFactory",
+    "0x5AaA726fa1d844D71Ebe0757705b86fAb8041526"
+  );
   plugin = await ethers.getContractAt(
     "contracts/MapPlugin.sol:MapPlugin",
-    "0xEc76C06258D32890F492c6575708D12d0AF3B9c9"
+    "0xa4Fcf5232Ad35c99449244427E308e6cf48FFf3D"
   );
   multicall = await ethers.getContractAt(
     "contracts/Multicall.sol:Multicall",
-    "0x09117A6C49aE3f56B142Ab529dfcA4E600C77F3e"
+    "0x74Ea8f0fE0b6Ab5EbFA2d2F2907DAd5aB58d8D53"
   );
   WBERA = new ethers.Contract(WBERA_ADDRESS, WBERA_ABI, provider);
   console.log("Contracts Retrieved");
@@ -47,6 +51,15 @@ async function getContracts() {
 
 /*===========================  END CONTRACT DATA  ===================*/
 /*===================================================================*/
+
+async function deployFactionFactory() {
+  console.log("Starting Faction Factory Deployment");
+  const factionFactoryArtifact = await ethers.getContractFactory(
+    "FactionFactory"
+  );
+  factionFactory = await factionFactoryArtifact.deploy();
+  console.log("Faction Factory Deployed at:", factionFactory.address);
+}
 
 async function deployPlugin(wallet) {
   console.log("Starting Plugin Deployment");
@@ -57,6 +70,8 @@ async function deployPlugin(wallet) {
     [WBERA_ADDRESS],
     [WBERA_ADDRESS],
     wallet.address,
+    wallet.address,
+    factionFactory.address,
     VAULT_FACTORY_ADDRESS,
     {
       gasPrice: ethers.gasPrice,
@@ -85,9 +100,16 @@ async function deployMulticall() {
 
 async function printDeployment() {
   console.log("**************************************************************");
+  console.log("Faction Factory: ", factionFactory.address);
   console.log("Plugin: ", plugin.address);
   console.log("Multicall: ", multicall.address);
   console.log("**************************************************************");
+}
+
+async function verifyFactionFactory() {
+  await hre.run("verify:verify", {
+    address: factionFactory.address,
+  });
 }
 
 async function verifyPlugin(wallet) {
@@ -99,6 +121,8 @@ async function verifyPlugin(wallet) {
       [WBERA_ADDRESS],
       [WBERA_ADDRESS],
       wallet.address,
+      wallet.address,
+      factionFactory.address,
       VAULT_FACTORY_ADDRESS,
     ],
   });
@@ -122,10 +146,12 @@ async function main() {
 
   await getContracts();
 
+  // await deployFactionFactory();
   // await deployPlugin(wallet);
   // await deployMulticall();
   // await printDeployment();
 
+  // await verifyFactionFactory();
   // await verifyPlugin(wallet);
   // await verifyMulticall();
 
