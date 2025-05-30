@@ -72,8 +72,6 @@ describe("local: test0", function () {
     );
     console.log("- Multicall Initialized");
 
-    await plugin.createFaction(user0.address);
-
     console.log("Initialization Complete");
     console.log();
   });
@@ -82,30 +80,23 @@ describe("local: test0", function () {
     console.log("******************************************************");
   });
 
-  it("User0 places tiles randomly", async function () {
+  it("Owners adds faction to multicall", async function () {
     console.log("******************************************************");
-    console.log("ETH balance: ", divDec(await user0.getBalance()));
-    await expect(
-      multicall.connect(user0).placeFor(user0.address, 0, "#5406e6", [0], {
-        value: pointZeroOne,
-      })
-    ).to.be.revertedWith("Plugin__InvalidFaction");
-    console.log("ETH balance: ", divDec(await user0.getBalance()));
-  });
-
-  it("Owners creates factions", async function () {
-    console.log("******************************************************");
-    await plugin.createFaction(faction0.address);
-    await plugin.createFaction(faction1.address);
-    await plugin.createFaction(faction2.address);
+    await multicall.setFactions([
+      faction0.address,
+      faction1.address,
+      faction2.address,
+    ]);
   });
 
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
-    await multicall.connect(user0).placeFor(user0.address, 1, "#06e647", [0], {
-      value: pointZeroOne,
-    });
+    await multicall
+      .connect(user0)
+      .placeFor(user0.address, faction0.address, [0], ["#06e647"], {
+        value: pointZeroOne,
+      });
     console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 
@@ -114,9 +105,26 @@ describe("local: test0", function () {
     console.log("ETH balance: ", divDec(await user1.getBalance()));
     await multicall
       .connect(user1)
-      .placeFor(user1.address, 1, "#e6cf06", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], {
-        value: pointOne,
-      });
+      .placeFor(
+        user1.address,
+        faction0.address,
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [
+          "#e6cf06",
+          "#e6cf06",
+          "#e6cf06",
+          "#e6cf06",
+          "#e6cf06",
+          "#e6cf06",
+          "#e6cf06",
+          "#e6cf06",
+          "#e6cf06",
+          "#e6cf06",
+        ],
+        {
+          value: pointOne,
+        }
+      );
     console.log("ETH balance: ", divDec(await user1.getBalance()));
   });
 
@@ -156,27 +164,33 @@ describe("local: test0", function () {
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
-    await multicall.connect(user0).placeFor(user0.address, 1, "#33353a", [0], {
-      value: pointZeroOne,
-    });
+    await multicall
+      .connect(user0)
+      .placeFor(user0.address, faction0.address, [0], ["#33353a"], {
+        value: pointZeroOne,
+      });
     console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
-    await multicall.connect(user0).placeFor(user0.address, 1, "#56aa77", [0], {
-      value: pointZeroOne,
-    });
+    await multicall
+      .connect(user0)
+      .placeFor(user0.address, faction0.address, [0], ["#56aa77"], {
+        value: pointZeroOne,
+      });
     console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
-    await multicall.connect(user0).placeFor(user0.address, 2, "#ffffff", [0], {
-      value: pointZeroOne,
-    });
+    await multicall
+      .connect(user0)
+      .placeFor(user0.address, faction1.address, [0], ["#ffffff"], {
+        value: pointZeroOne,
+      });
     console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 
@@ -195,9 +209,15 @@ describe("local: test0", function () {
     console.log("ETH balance: ", divDec(await user0.getBalance()));
     await multicall
       .connect(user0)
-      .placeFor(user0.address, 2, "#2e2c00", [0, 1], {
-        value: pointZeroTwo,
-      });
+      .placeFor(
+        user0.address,
+        faction2.address,
+        [0, 1],
+        ["#2e2c00", "#2e2c00"],
+        {
+          value: pointZeroTwo,
+        }
+      );
     console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 
@@ -209,9 +229,20 @@ describe("local: test0", function () {
         .connect(user0)
         .placeFor(
           user0.address,
-          2,
-          "#0cff00",
+          faction2.address,
           [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+          [
+            "#0cff00",
+            "#0cff00",
+            "#0cff00",
+            "#0cff00",
+            "#0cff00",
+            "#0cff00",
+            "#0cff00",
+            "#0cff00",
+            "#0cff00",
+            "#0cff00",
+          ],
           {
             value: pointZeroOne,
           }
@@ -221,9 +252,20 @@ describe("local: test0", function () {
       .connect(user0)
       .placeFor(
         user0.address,
-        1,
-        "#ffc1c1",
+        faction2.address,
         [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+        [
+          "#ffc1c1",
+          "#ffc1c1",
+          "#ffc1c1",
+          "#ffc1c1",
+          "#ffc1c1",
+          "#ffc1c1",
+          "#ffc1c1",
+          "#ffc1c1",
+          "#ffc1c1",
+          "#ffc1c1",
+        ],
         {
           value: pointOne,
         }
@@ -255,9 +297,9 @@ describe("local: test0", function () {
         .connect(user0)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#700202",
+          faction2.address,
           [getRndInteger(0, 100)],
+          ["#700202"],
           {
             value: pointZeroOne,
           }
@@ -274,9 +316,9 @@ describe("local: test0", function () {
         .connect(user0)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#374648",
+          AddressZero,
           [getRndInteger(0, 100)],
+          ["#374648"],
           {
             value: pointZeroOne,
           }
@@ -293,9 +335,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#009b14",
+          faction0.address,
           [getRndInteger(0, 100)],
+          ["#009b14"],
           {
             value: pointZeroOne,
           }
@@ -312,9 +354,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user1.address,
-          getRndInteger(1, 3),
-          "#252524",
+          faction1.address,
           [getRndInteger(0, 100)],
+          ["#252524"],
           {
             value: pointZeroOne,
           }
@@ -331,9 +373,9 @@ describe("local: test0", function () {
         .connect(user2)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#dadbff",
+          faction2.address,
           [getRndInteger(0, 100)],
+          ["#dadbff"],
           {
             value: pointZeroOne,
           }
@@ -350,9 +392,9 @@ describe("local: test0", function () {
         .connect(user0)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#0004a2",
+          AddressZero,
           [getRndInteger(0, 100)],
+          ["#0004a2"],
           {
             value: pointZeroOne,
           }
@@ -369,9 +411,9 @@ describe("local: test0", function () {
         .connect(user2)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#00ff4e",
+          faction0.address,
           [getRndInteger(0, 100)],
+          ["#00ff4e"],
           {
             value: pointZeroOne,
           }
@@ -388,9 +430,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user1.address,
-          getRndInteger(1, 3),
-          "#880043",
+          faction2.address,
           [getRndInteger(0, 100)],
+          ["#880043"],
           {
             value: pointZeroOne,
           }
@@ -407,9 +449,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#010c06",
+          faction1.address,
           [getRndInteger(0, 100)],
+          ["#010c06"],
           {
             value: pointZeroOne,
           }
@@ -462,9 +504,9 @@ describe("local: test0", function () {
         .connect(user0)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#888888",
+          faction0.address,
           [getRndInteger(0, 100)],
+          ["#888888"],
           {
             value: pointZeroOne,
           }
@@ -481,9 +523,9 @@ describe("local: test0", function () {
         .connect(user0)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#ffffff",
+          faction0.address,
           [getRndInteger(0, 100)],
+          ["#ffffff"],
           {
             value: pointZeroOne,
           }
@@ -500,9 +542,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#000000",
+          faction1.address,
           [getRndInteger(0, 100)],
+          ["#000000"],
           {
             value: pointZeroOne,
           }
@@ -519,9 +561,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user1.address,
-          getRndInteger(1, 3),
-          "#a500ff",
+          faction2.address,
           [getRndInteger(0, 100)],
+          ["#a500ff"],
           {
             value: pointZeroOne,
           }
@@ -538,9 +580,9 @@ describe("local: test0", function () {
         .connect(user2)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#1f1d20",
+          user0.address,
           [getRndInteger(0, 100)],
+          ["#1f1d20"],
           {
             value: pointZeroOne,
           }
@@ -557,9 +599,9 @@ describe("local: test0", function () {
         .connect(user0)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#ff6cb5",
+          user1.address,
           [getRndInteger(0, 100)],
+          ["#ff6cb5"],
           {
             value: pointZeroOne,
           }
@@ -576,9 +618,9 @@ describe("local: test0", function () {
         .connect(user2)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#ff6300",
+          user0.address,
           [getRndInteger(0, 100)],
+          ["#ff6300"],
           {
             value: pointZeroOne,
           }
@@ -595,9 +637,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user1.address,
-          getRndInteger(1, 3),
-          "#4ba1b0",
+          faction0.address,
           [getRndInteger(0, 100)],
+          ["#4ba1b0"],
           {
             value: pointZeroOne,
           }
@@ -614,9 +656,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#e17503",
+          faction2.address,
           [getRndInteger(0, 100)],
+          ["#e17503"],
           {
             value: pointZeroOne,
           }
@@ -649,9 +691,9 @@ describe("local: test0", function () {
         .connect(user0)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#919191",
+          AddressZero,
           [getRndInteger(0, 100)],
+          ["#919191"],
           {
             value: pointZeroOne,
           }
@@ -668,9 +710,9 @@ describe("local: test0", function () {
         .connect(user0)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#f100ff",
+          AddressZero,
           [getRndInteger(0, 100)],
+          ["#f100ff"],
           {
             value: pointZeroOne,
           }
@@ -687,9 +729,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#202020",
+          AddressZero,
           [getRndInteger(0, 100)],
+          ["#202020"],
           {
             value: pointZeroOne,
           }
@@ -706,9 +748,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user1.address,
-          getRndInteger(1, 3),
-          "#000000",
+          faction2.address,
           [getRndInteger(0, 100)],
+          ["#000000"],
           {
             value: pointZeroOne,
           }
@@ -724,9 +766,9 @@ describe("local: test0", function () {
           .connect(user2)
           .placeFor(
             user2.address,
-            getRndInteger(1, 3),
-            "#000000",
+            faction1.address,
             [getRndInteger(0, 100)],
+            ["#000000"],
             {
               value: pointZeroOne,
             }
@@ -744,9 +786,9 @@ describe("local: test0", function () {
         .connect(user0)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#baffa2",
+          faction0.address,
           [getRndInteger(0, 100)],
+          ["#baffa2"],
           {
             value: pointZeroOne,
           }
@@ -763,9 +805,9 @@ describe("local: test0", function () {
         .connect(user2)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#a2e4ff",
+          faction0.address,
           [getRndInteger(0, 100)],
+          ["#a2e4ff"],
           {
             value: pointZeroOne,
           }
@@ -782,9 +824,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user1.address,
-          getRndInteger(1, 3),
-          "#008374",
+          faction0.address,
           [getRndInteger(0, 100)],
+          ["#008374"],
           {
             value: pointZeroOne,
           }
@@ -801,9 +843,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#260083",
+          faction0.address,
           [getRndInteger(0, 100)],
+          ["#260083"],
           {
             value: pointZeroOne,
           }
@@ -836,9 +878,9 @@ describe("local: test0", function () {
         .connect(user0)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#dd159e",
+          faction0.address,
           [getRndInteger(0, 100)],
+          ["#dd159e"],
           {
             value: pointZeroOne,
           }
@@ -855,9 +897,9 @@ describe("local: test0", function () {
         .connect(user0)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#01c96f",
+          faction0.address,
           [getRndInteger(0, 100)],
+          ["#01c96f"],
           {
             value: pointZeroOne,
           }
@@ -874,9 +916,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#00ffef",
+          faction0.address,
           [getRndInteger(0, 100)],
+          ["#00ffef"],
           {
             value: pointZeroOne,
           }
@@ -893,9 +935,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user1.address,
-          getRndInteger(1, 3),
-          "#060707",
+          faction0.address,
           [getRndInteger(0, 100)],
+          ["#060707"],
           {
             value: pointZeroOne,
           }
@@ -912,9 +954,9 @@ describe("local: test0", function () {
         .connect(user2)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#000000",
+          faction1.address,
           [getRndInteger(0, 100)],
+          ["#000000"],
           {
             value: pointZeroOne,
           }
@@ -931,9 +973,9 @@ describe("local: test0", function () {
         .connect(user0)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#000000",
+          faction2.address,
           [getRndInteger(0, 100)],
+          ["#000000"],
           {
             value: pointZeroOne,
           }
@@ -950,9 +992,9 @@ describe("local: test0", function () {
         .connect(user2)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#000000",
+          user0.address,
           [getRndInteger(0, 100)],
+          ["#000000"],
           {
             value: pointZeroOne,
           }
@@ -969,9 +1011,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user1.address,
-          getRndInteger(1, 3),
-          "#ffffff",
+          user1.address,
           [getRndInteger(0, 100)],
+          ["#ffffff"],
           {
             value: pointZeroOne,
           }
@@ -988,9 +1030,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#ffffff",
+          user2.address,
           [getRndInteger(0, 100)],
+          ["#ffffff"],
           {
             value: pointZeroOne,
           }
@@ -1020,9 +1062,26 @@ describe("local: test0", function () {
     console.log("ETH balance: ", divDec(await user1.getBalance()));
     await multicall
       .connect(user0)
-      .placeFor(user0.address, 1, "#325f27", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], {
-        value: pointOne,
-      });
+      .placeFor(
+        user0.address,
+        faction0.address,
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [
+          "#325f27",
+          "#325f27",
+          "#325f27",
+          "#325f27",
+          "#325f27",
+          "#325f27",
+          "#325f27",
+          "#325f27",
+          "#325f27",
+          "#325f27",
+        ],
+        {
+          value: pointOne,
+        }
+      );
     console.log("ETH balance: ", divDec(await user1.getBalance()));
   });
 
@@ -1031,9 +1090,26 @@ describe("local: test0", function () {
     console.log("ETH balance: ", divDec(await user1.getBalance()));
     await multicall
       .connect(user1)
-      .placeFor(user1.address, 1, "#b3ffee", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], {
-        value: pointOne,
-      });
+      .placeFor(
+        user1.address,
+        faction0.address,
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [
+          "#b3ffee",
+          "#b3ffee",
+          "#b3ffee",
+          "#b3ffee",
+          "#b3ffee",
+          "#b3ffee",
+          "#b3ffee",
+          "#b3ffee",
+          "#b3ffee",
+          "#b3ffee",
+        ],
+        {
+          value: pointOne,
+        }
+      );
     console.log("ETH balance: ", divDec(await user1.getBalance()));
   });
 
@@ -1042,9 +1118,26 @@ describe("local: test0", function () {
     console.log("ETH balance: ", divDec(await user1.getBalance()));
     await multicall
       .connect(user2)
-      .placeFor(user2.address, 1, "#af3501", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], {
-        value: pointOne,
-      });
+      .placeFor(
+        user2.address,
+        faction2.address,
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [
+          "#af3501",
+          "#af3501",
+          "#af3501",
+          "#af3501",
+          "#af3501",
+          "#af3501",
+          "#af3501",
+          "#af3501",
+          "#af3501",
+          "#af3501",
+        ],
+        {
+          value: pointOne,
+        }
+      );
     console.log("ETH balance: ", divDec(await user1.getBalance()));
   });
 
@@ -1056,9 +1149,9 @@ describe("local: test0", function () {
         .connect(user0)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#3c2c26",
+          faction0.address,
           [getRndInteger(0, 100)],
+          ["#3c2c26"],
           {
             value: pointZeroOne,
           }
@@ -1075,9 +1168,9 @@ describe("local: test0", function () {
         .connect(user0)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#0b0088",
+          faction0.address,
           [getRndInteger(0, 100)],
+          ["#0b0088"],
           {
             value: pointZeroOne,
           }
@@ -1094,9 +1187,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#064522",
+          faction0.address,
           [getRndInteger(0, 100)],
+          ["#064522"],
           {
             value: pointZeroOne,
           }
@@ -1113,9 +1206,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user1.address,
-          getRndInteger(1, 3),
-          "#b200ff",
+          faction1.address,
           [getRndInteger(0, 100)],
+          ["#b200ff"],
           {
             value: pointZeroOne,
           }
@@ -1132,9 +1225,9 @@ describe("local: test0", function () {
         .connect(user2)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#0cbd00",
+          faction2.address,
           [getRndInteger(0, 100)],
+          ["#0cbd00"],
           {
             value: pointZeroOne,
           }
@@ -1151,9 +1244,9 @@ describe("local: test0", function () {
         .connect(user0)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#038dc5",
+          faction2.address,
           [getRndInteger(0, 100)],
+          ["#038dc5"],
           {
             value: pointZeroOne,
           }
@@ -1170,9 +1263,9 @@ describe("local: test0", function () {
         .connect(user2)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#c5033a",
+          user0.address,
           [getRndInteger(0, 100)],
+          ["#c5033a"],
           {
             value: pointZeroOne,
           }
@@ -1189,9 +1282,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user1.address,
-          getRndInteger(1, 3),
-          "#5f550f",
+          user1.address,
           [getRndInteger(0, 100)],
+          ["#5f550f"],
           {
             value: pointZeroOne,
           }
@@ -1208,9 +1301,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#5f550f",
+          user2.address,
           [getRndInteger(0, 100)],
+          ["#5f550f"],
           {
             value: pointZeroOne,
           }
@@ -1330,9 +1423,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#064522",
+          faction0.address,
           [getRndInteger(0, 200)],
+          ["#064522"],
           {
             value: pointZeroOne,
           }
@@ -1349,9 +1442,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user1.address,
-          getRndInteger(1, 3),
-          "#b200ff",
+          faction1.address,
           [getRndInteger(0, 200)],
+          ["#b200ff"],
           {
             value: pointZeroOne,
           }
@@ -1368,9 +1461,9 @@ describe("local: test0", function () {
         .connect(user2)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#0cbd00",
+          faction2.address,
           [getRndInteger(0, 200)],
+          ["#0cbd00"],
           {
             value: pointZeroOne,
           }
@@ -1387,9 +1480,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#064522",
+          faction0.address,
           [getRndInteger(0, 200)],
+          ["#064522"],
           {
             value: pointZeroOne,
           }
@@ -1406,9 +1499,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user1.address,
-          getRndInteger(1, 3),
-          "#b200ff",
+          faction1.address,
           [getRndInteger(0, 200)],
+          ["#b200ff"],
           {
             value: pointZeroOne,
           }
@@ -1425,9 +1518,9 @@ describe("local: test0", function () {
         .connect(user2)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#0cbd00",
+          faction2.address,
           [getRndInteger(0, 200)],
+          ["#0cbd00"],
           {
             value: pointZeroOne,
           }
@@ -1444,9 +1537,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#064522",
+          faction0.address,
           [getRndInteger(0, 200)],
+          ["#064522"],
           {
             value: pointZeroOne,
           }
@@ -1463,9 +1556,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user1.address,
-          getRndInteger(1, 3),
-          "#b200ff",
+          faction1.address,
           [getRndInteger(0, 200)],
+          ["#b200ff"],
           {
             value: pointZeroOne,
           }
@@ -1482,9 +1575,9 @@ describe("local: test0", function () {
         .connect(user2)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#0cbd00",
+          faction2.address,
           [getRndInteger(0, 200)],
+          ["#0cbd00"],
           {
             value: pointZeroOne,
           }
@@ -1501,9 +1594,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#064522",
+          faction0.address,
           [getRndInteger(0, 200)],
+          ["#064522"],
           {
             value: pointZeroOne,
           }
@@ -1520,9 +1613,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user1.address,
-          getRndInteger(1, 3),
-          "#b200ff",
+          faction1.address,
           [getRndInteger(0, 200)],
+          ["#b200ff"],
           {
             value: pointZeroOne,
           }
@@ -1539,9 +1632,9 @@ describe("local: test0", function () {
         .connect(user2)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#0cbd00",
+          faction2.address,
           [getRndInteger(0, 200)],
+          ["#0cbd00"],
           {
             value: pointZeroOne,
           }
@@ -1558,9 +1651,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#064522",
+          faction0.address,
           [getRndInteger(0, 200)],
+          ["#064522"],
           {
             value: pointZeroOne,
           }
@@ -1577,9 +1670,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user1.address,
-          getRndInteger(1, 3),
-          "#b200ff",
+          faction1.address,
           [getRndInteger(0, 200)],
+          ["#b200ff"],
           {
             value: pointZeroOne,
           }
@@ -1596,9 +1689,9 @@ describe("local: test0", function () {
         .connect(user2)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#0cbd00",
+          faction2.address,
           [getRndInteger(0, 200)],
+          ["#0cbd00"],
           {
             value: pointZeroOne,
           }
@@ -1615,9 +1708,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#064522",
+          faction0.address,
           [getRndInteger(0, 200)],
+          ["#064522"],
           {
             value: pointZeroOne,
           }
@@ -1634,9 +1727,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user1.address,
-          getRndInteger(1, 3),
-          "#b200ff",
+          faction1.address,
           [getRndInteger(0, 200)],
+          ["#b200ff"],
           {
             value: pointZeroOne,
           }
@@ -1653,9 +1746,9 @@ describe("local: test0", function () {
         .connect(user2)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#0cbd00",
+          faction2.address,
           [getRndInteger(0, 200)],
+          ["#0cbd00"],
           {
             value: pointZeroOne,
           }
@@ -1672,9 +1765,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user0.address,
-          getRndInteger(1, 3),
-          "#064522",
+          faction0.address,
           [getRndInteger(0, 200)],
+          ["#064522"],
           {
             value: pointZeroOne,
           }
@@ -1691,9 +1784,9 @@ describe("local: test0", function () {
         .connect(user1)
         .placeFor(
           user1.address,
-          getRndInteger(1, 3),
-          "#b200ff",
+          faction1.address,
           [getRndInteger(0, 200)],
+          ["#b200ff"],
           {
             value: pointZeroOne,
           }
@@ -1710,9 +1803,9 @@ describe("local: test0", function () {
         .connect(user2)
         .placeFor(
           user2.address,
-          getRndInteger(1, 3),
-          "#0cbd00",
+          faction2.address,
           [getRndInteger(0, 200)],
+          ["#0cbd00"],
           {
             value: pointZeroOne,
           }

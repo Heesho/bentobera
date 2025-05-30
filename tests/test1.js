@@ -72,8 +72,6 @@ describe("local: test1", function () {
     );
     console.log("- Multicall Initialized");
 
-    await plugin.createFaction(user0.address);
-
     console.log("Initialization Complete");
     console.log();
   });
@@ -85,9 +83,11 @@ describe("local: test1", function () {
   it("User0 places tile", async function () {
     console.log("******************************************************");
     console.log("ETH balance: ", divDec(await user0.getBalance()));
-    await multicall.connect(user0).placeFor(user0.address, 1, "#06e647", [0], {
-      value: pointZeroOne,
-    });
+    await multicall
+      .connect(user0)
+      .placeFor(user0.address, faction0.address, [0], ["#06e647"], {
+        value: pointZeroOne,
+      });
     console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 
@@ -95,9 +95,11 @@ describe("local: test1", function () {
     console.log("******************************************************");
     const factions = await multicall.getFactions();
     console.log(factions);
-    await multicall.connect(user0).placeFor(user0.address, 1, "#06e647", [0], {
-      value: pointZeroOne,
-    });
+    await multicall
+      .connect(user0)
+      .placeFor(user0.address, faction0.address, [0], ["#06e647"], {
+        value: pointZeroOne,
+      });
     console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 });

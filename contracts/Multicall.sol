@@ -2,30 +2,25 @@
 pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 interface IMapPlugin {
     struct Pixel {
         address account;
-        uint256 faction;
+        address faction;
         string color;
     }
-    struct Faction {
-        address owner;
-        uint256 balance;
-        uint256 totalPlaced;
-        bool isActive;
-    }
-    function placeFor(address account, uint256 faction, string calldata color, uint256[] calldata indexes) external;
+    function placeFor(address account, address faction, uint256[] calldata indexes, string[] calldata colors) external;
     function getGauge() external view returns (address);
-    function placePrice() external view returns (uint256);
-    function getFaction(uint256 index) external view returns (Faction memory);
+    function price() external view returns (uint256);
     function getPixel(uint256 index) external view returns (Pixel memory);
     function getPixels(uint256 startIndex, uint256 endIndex) external view returns (Pixel[] memory);
-    function factionMax() external view returns (uint256);
-    function index_Faction(uint256 index) external view returns (Faction memory);
+    function totalPlaced() external view returns (uint256);
+    function faction_Balance(address faction) external view returns (uint256);
+    function faction_Placed(address faction) external view returns (uint256);
     function account_Placed(address account) external view returns (uint256);
-    function account_Faction_Balance(address account, uint256 faction) external view returns (uint256);
-    function account_Faction_Placed(address account, uint256 faction) external view returns (uint256);
+    function account_Faction_Balance(address account, address faction) external view returns (uint256);
+    function account_Faction_Placed(address account, address faction) external view returns (uint256);
 }
 
 interface IGauge {
@@ -40,13 +35,19 @@ interface IWBERA {
     function deposit() external payable;
 }
 
-contract Multicall {
+contract Multicall is Ownable {
     using SafeERC20 for IERC20;
+
+    /*----------  CONSTANTS  --------------------------------------------*/
+
+    /*----------  STATE VARIABLES  --------------------------------------*/
 
     address public immutable base;
     address public immutable plugin;
     address public immutable voter;
     address public immutable oBERO;
+
+    address[] public factions;
 
     struct AccountState {
         uint256 balance;
@@ -63,6 +64,21 @@ contract Multicall {
         uint256 oBeroBalance;
     }
 
+    struct FactionState {
+        address owner;
+        uint256 balance;
+        uint256 totalPlaced;
+    }
+
+    /*----------  ERRORS ------------------------------------------------*/
+
+    /*----------  EVENTS ------------------------------------------------*/
+
+    event Multicall__FactionsSet(address[] factions);
+    event Multicall__Placed(address account, address faction, uint256[] indexes, string[] colors);
+
+    /*----------  FUNCTIONS  --------------------------------------------*/
+
     constructor(address _base, address _plugin, address _voter, address _oBERO) {
         base = _base;
         plugin = _plugin;
@@ -70,25 +86,31 @@ contract Multicall {
         oBERO = _oBERO;
     }
 
-    function placeFor(address account, uint256 faction, string calldata color, uint256[] calldata indexes) external payable {
+    function placeFor(address account, address faction, uint256[] calldata indexes, string[] calldata colors) external payable {
         IWBERA(base).deposit{value: msg.value}();
         IERC20(base).safeApprove(plugin, 0);
         IERC20(base).safeApprove(plugin, msg.value);
-        IMapPlugin(plugin).placeFor(account, faction, color, indexes);
+        IMapPlugin(plugin).placeFor(account, faction, indexes, colors);
+        emit Multicall__Placed(account, faction, indexes, colors);
     }
+
+    /*----------  RESTRICTED FUNCTIONS  ---------------------------------*/
+
+    function setFactions(address[] calldata _factions) external onlyOwner {
+        factions = _factions;
+        emit Multicall__FactionsSet(_factions);
+    }
+
+    /*----------  VIEW FUNCTIONS  ---------------------------------------*/
 
     function getReward(address account) external {
         IGauge(IMapPlugin(plugin).getGauge()).getReward(account);
     }
 
-    // Function to receive Ether. msg.data must be empty
     receive() external payable {}
 
-    // Fallback function is called when msg.data is not empty
-    fallback() external payable {}
-
-    function getPlacePrice() external view returns (uint256) {
-        return IMapPlugin(plugin).placePrice();
+    function getPrice() external view returns (uint256) {
+        return IMapPlugin(plugin).price();
     }
 
     function getGauge(address account) external view returns (GaugeState memory gaugeState) {
@@ -104,22 +126,26 @@ contract Multicall {
         address gauge = IMapPlugin(plugin).getGauge();
         accountState.balance = IGauge(gauge).balanceOf(account);
         accountState.placed = IMapPlugin(plugin).account_Placed(account);
-        uint256 maxFactions = IMapPlugin(plugin).factionMax();
+        uint256 maxFactions = factions.length;
         accountState.factionBalance = new uint256[](maxFactions);
         accountState.factionPlaced = new uint256[](maxFactions);
         for (uint256 i = 0; i < maxFactions; i++) {
-            accountState.factionBalance[i] = IMapPlugin(plugin).account_Faction_Balance(account, i);
-            accountState.factionPlaced[i] = IMapPlugin(plugin).account_Faction_Placed(account, i);
+            accountState.factionBalance[i] = IMapPlugin(plugin).account_Faction_Balance(account, factions[i]);
+            accountState.factionPlaced[i] = IMapPlugin(plugin).account_Faction_Placed(account, factions[i]);
         }
     }
 
-    function getFactions() external view returns (IMapPlugin.Faction[] memory) {
-        uint256 maxFactions = IMapPlugin(plugin).factionMax();
-        IMapPlugin.Faction[] memory factions = new IMapPlugin.Faction[](maxFactions);
+    function getFactions() external view returns (FactionState[] memory) {
+        uint256 maxFactions = factions.length;
+        FactionState[] memory factionStates = new FactionState[](maxFactions);
         for (uint256 i = 0; i < maxFactions; i++) {
-            factions[i] = IMapPlugin(plugin).getFaction(i + 1);
+            factionStates[i] = FactionState(
+                factions[i],
+                IMapPlugin(plugin).faction_Balance(factions[i]),
+                IMapPlugin(plugin).faction_Placed(factions[i])
+            );
         }
-        return factions;
+        return factionStates;
     }
 
     function getPixel(uint256 index) external view returns (IMapPlugin.Pixel memory) {
