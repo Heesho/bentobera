@@ -35,11 +35,11 @@ async function getContracts() {
   await provider.ready; // Ensure the provider is connected
   plugin = await ethers.getContractAt(
     "contracts/MapPlugin.sol:MapPlugin",
-    "0xEc76C06258D32890F492c6575708D12d0AF3B9c9"
+    "0x24f2b8BEb1F4D93Ea9599dd7E1e7Ca0B4Af6AF5D"
   );
   multicall = await ethers.getContractAt(
     "contracts/Multicall.sol:Multicall",
-    "0x09117A6C49aE3f56B142Ab529dfcA4E600C77F3e"
+    "0x6b02D0Dc81a6934a6AFc71f0bD70b453813cF425"
   );
   WBERA = new ethers.Contract(WBERA_ADDRESS, WBERA_ABI, provider);
   console.log("Contracts Retrieved");
@@ -56,6 +56,7 @@ async function deployPlugin(wallet) {
     VOTER_ADDRESS,
     [WBERA_ADDRESS],
     [WBERA_ADDRESS],
+    wallet.address,
     wallet.address,
     VAULT_FACTORY_ADDRESS,
     {
@@ -99,6 +100,7 @@ async function verifyPlugin(wallet) {
       [WBERA_ADDRESS],
       [WBERA_ADDRESS],
       wallet.address,
+      wallet.address,
       VAULT_FACTORY_ADDRESS,
     ],
   });
@@ -127,15 +129,9 @@ async function main() {
   // await printDeployment();
 
   // await verifyPlugin(wallet);
-  // await verifyMulticall();
-
-  // await plugin.createFaction(wallet.address);
+  await verifyMulticall();
 
   // await plugin.setPlacePrice(ethers.utils.parseEther("0.001"));
-
-  // console.log("Factions: ", await plugin.factionMax());
-  // console.log("Price: ", await plugin.placePrice());
-  // console.log("Pixel 0: ", await plugin.getPixel(6));
 
   // await multicall.placeFor(wallet.address, 1, "#4f0095", [6], {
   //   value: ethers.utils.parseEther("0.001"),
@@ -155,6 +151,16 @@ async function main() {
 
   // await WBERA.connect(wallet).withdraw(
   //   await WBERA.connect(wallet).balanceOf(wallet.address)
+
+  await multicall.setFactions(
+    [
+      "0x039ec2E90454892fCbA461Ecf8878D0C45FDdFeE",
+      "0x96f71F5ef424D560C9df490B453802C24D2Cd705",
+      "0xe840113e95084f447465d265f62Ff062dA2aA903",
+      "0x4D9c4736AF216a2c76e92886294A8D1C419FD22f",
+    ],
+    ["GumBall", "Future Girls", "Sprotos", "Broc Army"]
+  );
 }
 
 main()

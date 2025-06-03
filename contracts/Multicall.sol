@@ -48,6 +48,7 @@ contract Multicall is Ownable {
     address public immutable oBERO;
 
     address[] public factions;
+    string[] public names;
 
     struct AccountState {
         uint256 balance;
@@ -65,6 +66,7 @@ contract Multicall is Ownable {
     }
 
     struct FactionState {
+        string name;
         address owner;
         uint256 balance;
         uint256 totalPlaced;
@@ -72,9 +74,11 @@ contract Multicall is Ownable {
 
     /*----------  ERRORS ------------------------------------------------*/
 
+    error Multicall__InvalidArrayLength();
+
     /*----------  EVENTS ------------------------------------------------*/
 
-    event Multicall__FactionsSet(address[] factions);
+    event Multicall__FactionAdded(address faction, string name);
     event Multicall__Placed(address account, address faction, uint256[] indexes, string[] colors);
 
     /*----------  FUNCTIONS  --------------------------------------------*/
@@ -96,9 +100,16 @@ contract Multicall is Ownable {
 
     /*----------  RESTRICTED FUNCTIONS  ---------------------------------*/
 
-    function setFactions(address[] calldata _factions) external onlyOwner {
-        factions = _factions;
-        emit Multicall__FactionsSet(_factions);
+    function setFactions(address[] calldata _factions, string[] calldata _names) external onlyOwner {
+        if (_factions.length != _names.length) revert Multicall__InvalidArrayLength();
+        delete factions;
+        delete names;
+
+        for (uint256 i = 0; i < _factions.length; i++) {
+            factions.push(_factions[i]);
+            names.push(_names[i]);
+            emit Multicall__FactionAdded(_factions[i], _names[i]);
+        }
     }
 
     /*----------  VIEW FUNCTIONS  ---------------------------------------*/
@@ -140,6 +151,7 @@ contract Multicall is Ownable {
         FactionState[] memory factionStates = new FactionState[](maxFactions);
         for (uint256 i = 0; i < maxFactions; i++) {
             factionStates[i] = FactionState(
+                names[i],   
                 factions[i],
                 IMapPlugin(plugin).faction_Balance(factions[i]),
                 IMapPlugin(plugin).faction_Placed(factions[i])

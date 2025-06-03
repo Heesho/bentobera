@@ -82,11 +82,10 @@ describe("local: test0", function () {
 
   it("Owners adds faction to multicall", async function () {
     console.log("******************************************************");
-    await multicall.setFactions([
-      faction0.address,
-      faction1.address,
-      faction2.address,
-    ]);
+    await multicall.setFactions(
+      [faction0.address, faction1.address, faction2.address],
+      ["Faction 0", "Faction 1", "Faction 2"]
+    );
   });
 
   it("User0 places tile", async function () {
