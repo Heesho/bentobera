@@ -8,6 +8,7 @@ const AddressZero = "0x0000000000000000000000000000000000000000";
 const pointZeroOne = convert("0.01", 18);
 const pointZeroTwo = convert("0.02", 18);
 const pointOne = convert("0.1", 18);
+const pointZeroFive = convert("0.05", 18);
 const one = convert("1", 18);
 
 function getRndInteger(min, max) {
@@ -100,6 +101,24 @@ describe("local: test1", function () {
       .placeFor(user0.address, faction0.address, [0], ["#06e647"], {
         value: pointZeroOne,
       });
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
+
+  it("Multicall testing", async function () {
+    console.log("******************************************************");
+    const factions = await multicall.getFactions();
+    console.log(factions);
+    await multicall
+      .connect(user0)
+      .placeFor(
+        owner.address,
+        faction0.address,
+        [0, 0],
+        ["#06e647", "#06e647"],
+        {
+          value: pointZeroTwo,
+        }
+      );
     console.log("ETH balance: ", divDec(await user0.getBalance()));
   });
 });

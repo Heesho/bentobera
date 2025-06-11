@@ -10,7 +10,7 @@ interface IMapPlugin {
         address faction;
         string color;
     }
-    function placeFor(address account, address faction, uint256[] calldata indexes, string[] calldata colors) external;
+    function placeFor(address account, address faction, uint256 index, string calldata color) external;
     function getGauge() external view returns (address);
     function price() external view returns (uint256);
     function getPixel(uint256 index) external view returns (Pixel memory);
@@ -78,9 +78,6 @@ contract Multicall is Ownable {
 
     /*----------  EVENTS ------------------------------------------------*/
 
-    event Multicall__FactionAdded(address faction, string name);
-    event Multicall__Placed(address account, address faction, uint256[] indexes, string[] colors);
-
     /*----------  FUNCTIONS  --------------------------------------------*/
 
     constructor(address _base, address _plugin, address _voter, address _oBERO) {
@@ -94,8 +91,9 @@ contract Multicall is Ownable {
         IWBERA(base).deposit{value: msg.value}();
         IERC20(base).safeApprove(plugin, 0);
         IERC20(base).safeApprove(plugin, msg.value);
-        IMapPlugin(plugin).placeFor(account, faction, indexes, colors);
-        emit Multicall__Placed(account, faction, indexes, colors);
+        for (uint256 i = 0; i < indexes.length; i++) {
+            IMapPlugin(plugin).placeFor(account, faction, indexes[i], colors[i]);
+        }
     }
 
     /*----------  RESTRICTED FUNCTIONS  ---------------------------------*/
@@ -108,7 +106,6 @@ contract Multicall is Ownable {
         for (uint256 i = 0; i < _factions.length; i++) {
             factions.push(_factions[i]);
             names.push(_names[i]);
-            emit Multicall__FactionAdded(_factions[i], _names[i]);
         }
     }
 

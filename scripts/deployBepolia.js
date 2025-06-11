@@ -158,8 +158,17 @@ async function main() {
       "0x96f71F5ef424D560C9df490B453802C24D2Cd705",
       "0xe840113e95084f447465d265f62Ff062dA2aA903",
       "0x4D9c4736AF216a2c76e92886294A8D1C419FD22f",
+      "0x9A2517f6B34EE33e41EF48BCfb25D75E8f8FFa0C",
+      "0x081FCDD51f064DA905784955287Cfc95b051225A",
     ],
-    ["GumBall", "Future Girls", "Sprotos", "Broc Army"]
+    [
+      "Future Girls Inc",
+      "Beradrome",
+      "Sproto Gremlins",
+      "The Bullas",
+      "Yeet",
+      "The Honey Cast",
+    ]
   );
 }
 

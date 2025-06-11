@@ -191,53 +191,48 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     function placeFor(
         address account,
         address faction,
-        uint256[] calldata indexes,
-        string[] calldata colors
+        uint256 index,
+        string calldata color
     ) external nonReentrant {
-        if (indexes.length == 0) revert Plugin__InvalidZeroInput();
-        if (colors.length != indexes.length) revert Plugin__ArrayMismatch();
 
-        for (uint256 i = 0; i < indexes.length; i++) {
-            if (indexes[i] >= capacity) revert Plugin__InvalidIndex();
+        if (index >= capacity) revert Plugin__InvalidIndex();
 
-            Pixel memory prevPixel = index_Pixel[indexes[i]];
-            index_Pixel[indexes[i]] = Pixel(account, faction, colors[i]);
+        Pixel memory prevPixel = index_Pixel[index];
+        index_Pixel[index] = Pixel(account, faction, color);
 
-            if (prevPixel.account != address(0)) {
+        if (prevPixel.account != address(0)) {
 
-                faction_Balance[prevPixel.faction] -= AMOUNT;
-                account_Faction_Balance[prevPixel.account][prevPixel.faction] -= AMOUNT;
+            faction_Balance[prevPixel.faction] -= AMOUNT;
+            account_Faction_Balance[prevPixel.account][prevPixel.faction] -= AMOUNT;
 
-                IGauge(gauge)._withdraw(prevPixel.account, AMOUNT);
-                IRewardVault(rewardVault).delegateWithdraw(prevPixel.account, AMOUNT);
-                VaultToken(vaultToken).burn(address(this), AMOUNT);
-            }
-            emit Plugin__Placed(account, faction, indexes[i], colors[i]);
+            IGauge(gauge)._withdraw(prevPixel.account, AMOUNT);
+            IRewardVault(rewardVault).delegateWithdraw(prevPixel.account, AMOUNT);
+            VaultToken(vaultToken).burn(address(this), AMOUNT);
         }
 
-        uint256 amount = AMOUNT * indexes.length;
-        uint256 cost = price * indexes.length;
-        uint256 fee = cost / 20;
+        uint256 fee = price / 20;
 
-        totalPlaced += amount;
-        account_Placed[account] += amount;
-        faction_Balance[faction] += amount;
-        account_Faction_Balance[account][faction] += amount;
-        faction_Placed[faction] += amount;
-        account_Faction_Placed[account][faction] += amount;
+        totalPlaced += AMOUNT;
+        account_Placed[account] += AMOUNT;
+        faction_Balance[faction] += AMOUNT;
+        account_Faction_Balance[account][faction] += AMOUNT;
+        faction_Placed[faction] += AMOUNT;
+        account_Faction_Placed[account][faction] += AMOUNT;
 
         if (faction != address(0)) {
             token.safeTransferFrom(msg.sender, faction, fee);
-            token.safeTransferFrom(msg.sender, address(this), cost - fee);
+            token.safeTransferFrom(msg.sender, address(this), price - fee);
         } else {
-            token.safeTransferFrom(msg.sender, address(this), cost);
+            token.safeTransferFrom(msg.sender, address(this), price);
         }
 
-        IGauge(gauge)._deposit(account, amount);
-        VaultToken(vaultToken).mint(address(this), amount);
+        IGauge(gauge)._deposit(account, AMOUNT);
+        VaultToken(vaultToken).mint(address(this), AMOUNT);
         IERC20(vaultToken).safeApprove(rewardVault, 0);
-        IERC20(vaultToken).safeApprove(rewardVault, amount);
-        IRewardVault(rewardVault).delegateStake(account, amount);
+        IERC20(vaultToken).safeApprove(rewardVault, AMOUNT);
+        IRewardVault(rewardVault).delegateStake(account, AMOUNT);
+
+        emit Plugin__Placed(account, faction, index, color);
     }
 
     /*----------  RESTRICTED FUNCTIONS  ---------------------------------*/

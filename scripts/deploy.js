@@ -7,10 +7,10 @@ const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
 const convert = (amount, decimals) => ethers.utils.parseUnits(amount, decimals);
 const divDec = (amount, decimals = 18) => amount / 10 ** decimals;
 
-const VOTER_ADDRESS = "0x8D3629b91Dfc11B438CE728f945F9FCfc90e2231";
-const WBERA_ADDRESS = "0x7507c1dc16935B82698e4C63f2746A2fCf994dF8"; // WBERA address
-const OBERO_ADDRESS = "0x2F85c00073487101FB8C9C7120fDbaB66eb99182";
-const VAULT_FACTORY_ADDRESS = "0x2B6e40f65D82A0cB98795bC7587a71bfa49fBB2B";
+// const VOTER_ADDRESS = "";
+const WBERA_ADDRESS = "0x6969696969696969696969696969696969696969"; // WBERA address
+// const OBERO_ADDRESS = "";
+const VAULT_FACTORY_ADDRESS = "0x94Ad6Ac84f6C6FbA8b8CCbD71d9f4f101def52a8";
 
 // Contract Variables
 let base, plugin, multicall, voter;
@@ -23,15 +23,18 @@ async function getContracts() {
   //   "contracts/Base.sol:Base",
   //   "" // WBERA
   // );
-  // voter = await ethers.getContractAt("contracts/Voter.sol:Voter", "");
+  voter = await ethers.getContractAt(
+    "contracts/Voter.sol:Voter",
+    "0xf2838042a607AaD16f97C96725f130C0E8d48503"
+  );
   plugin = await ethers.getContractAt(
     "contracts/MapPlugin.sol:MapPlugin",
-    "0x2786201354ba8cc4Bb2908b59B7f345722bD9904"
+    "0x70B97161a26201A295243f2243b9CE8837aE438F"
   );
-  // multicall = await ethers.getContractAt(
-  //   "contracts/Multicall.sol:Multicall",
-  //   "0xfd95d3e80C71779fc38e9d4C05a4859BAFeC4922"
-  // );
+  multicall = await ethers.getContractAt(
+    "contracts/Multicall.sol:Multicall",
+    "0x32F1036954C19Dfe7499668f5fEd10c79C52126b"
+  );
   console.log("Contracts Retrieved");
 }
 
@@ -59,9 +62,10 @@ async function deployPlugin(wallet) {
   const pluginArtifact = await ethers.getContractFactory("MapPlugin");
   const pluginContract = await pluginArtifact.deploy(
     WBERA_ADDRESS,
-    VOTER_ADDRESS,
+    voter.address,
     [WBERA_ADDRESS],
     [WBERA_ADDRESS],
+    wallet.address,
     wallet.address,
     VAULT_FACTORY_ADDRESS,
     {
@@ -79,8 +83,8 @@ async function deployMulticall() {
   const multicallContract = await multicallArtifact.deploy(
     WBERA_ADDRESS,
     plugin.address,
-    VOTER_ADDRESS,
-    OBERO_ADDRESS,
+    voter.address,
+    await voter.OTOKEN(),
     {
       gasPrice: ethers.gasPrice,
     }
@@ -117,9 +121,10 @@ async function verifyPlugin(wallet) {
     address: plugin.address,
     constructorArguments: [
       WBERA_ADDRESS,
-      VOTER_ADDRESS,
+      voter.address,
       [WBERA_ADDRESS],
       [WBERA_ADDRESS],
+      wallet.address,
       wallet.address,
       VAULT_FACTORY_ADDRESS,
     ],
@@ -132,8 +137,8 @@ async function verifyMulticall() {
     constructorArguments: [
       WBERA_ADDRESS,
       plugin.address,
-      VOTER_ADDRESS,
-      OBERO_ADDRESS,
+      voter.address,
+      await voter.OTOKEN(),
     ],
   });
 }

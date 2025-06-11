@@ -1844,4 +1844,22 @@ describe("local: test0", function () {
       console.log(rowColors.join(" "));
     }
   });
+
+  it("Multicall testing", async function () {
+    console.log("******************************************************");
+    const factions = await multicall.getFactions();
+    console.log(factions);
+    await multicall
+      .connect(user0)
+      .placeFor(
+        user0.address,
+        faction0.address,
+        [0, 0],
+        ["#06e647", "#06e647"],
+        {
+          value: pointZeroTwo,
+        }
+      );
+    console.log("ETH balance: ", divDec(await user0.getBalance()));
+  });
 });
