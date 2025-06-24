@@ -35,11 +35,11 @@ async function getContracts() {
   await provider.ready; // Ensure the provider is connected
   plugin = await ethers.getContractAt(
     "contracts/MapPlugin.sol:MapPlugin",
-    "0x24f2b8BEb1F4D93Ea9599dd7E1e7Ca0B4Af6AF5D"
+    "0x56C66F0ba4577182ED6217E1ac86B81C0BA47B35"
   );
   multicall = await ethers.getContractAt(
     "contracts/Multicall.sol:Multicall",
-    "0x6b02D0Dc81a6934a6AFc71f0bD70b453813cF425"
+    "0x17BEE4c29E89ee61dA32Fdbc1851cADE60d4b360"
   );
   WBERA = new ethers.Contract(WBERA_ADDRESS, WBERA_ABI, provider);
   console.log("Contracts Retrieved");
@@ -129,7 +129,7 @@ async function main() {
   // await printDeployment();
 
   // await verifyPlugin(wallet);
-  await verifyMulticall();
+  // await verifyMulticall();
 
   // await plugin.setPlacePrice(ethers.utils.parseEther("0.001"));
 
