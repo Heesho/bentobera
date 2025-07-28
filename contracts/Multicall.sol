@@ -10,6 +10,7 @@ interface IMapPlugin {
         address faction;
         string color;
     }
+
     function placeFor(address account, address faction, uint256 index, string calldata color) external;
     function getGauge() external view returns (address);
     function price() external view returns (uint256);
@@ -37,10 +38,6 @@ interface IWBERA {
 
 contract Multicall is Ownable {
     using SafeERC20 for IERC20;
-
-    /*----------  CONSTANTS  --------------------------------------------*/
-
-    /*----------  STATE VARIABLES  --------------------------------------*/
 
     address public immutable base;
     address public immutable plugin;
@@ -72,14 +69,6 @@ contract Multicall is Ownable {
         uint256 totalPlaced;
     }
 
-    /*----------  ERRORS ------------------------------------------------*/
-
-    error Multicall__InvalidArrayLength();
-
-    /*----------  EVENTS ------------------------------------------------*/
-
-    /*----------  FUNCTIONS  --------------------------------------------*/
-
     constructor(address _base, address _plugin, address _voter, address _oBERO) {
         base = _base;
         plugin = _plugin;
@@ -87,19 +76,27 @@ contract Multicall is Ownable {
         oBERO = _oBERO;
     }
 
-    function placeFor(address account, address faction, uint256[] calldata indexes, string[] calldata colors) external payable {
+    function placeFor(address account, address faction, uint256[] calldata indexes, string[] calldata colors)
+        external
+        payable
+    {
+        require(account != address(0), "Multicall: Invalid account");
+        require(indexes.length == colors.length, "Multicall: Invalid array length");
         IWBERA(base).deposit{value: msg.value}();
         IERC20(base).safeApprove(plugin, 0);
         IERC20(base).safeApprove(plugin, msg.value);
         for (uint256 i = 0; i < indexes.length; i++) {
             IMapPlugin(plugin).placeFor(account, faction, indexes[i], colors[i]);
         }
+
+        uint256 excess = IERC20(base).balanceOf(address(this));
+        if (excess > 0) {
+            IERC20(base).safeTransfer(msg.sender, excess);
+        }
     }
 
-    /*----------  RESTRICTED FUNCTIONS  ---------------------------------*/
-
     function setFactions(address[] calldata _factions, string[] calldata _names) external onlyOwner {
-        if (_factions.length != _names.length) revert Multicall__InvalidArrayLength();
+        require(_factions.length == _names.length, "Multicall: Invalid array length");
         delete factions;
         delete names;
 
@@ -108,8 +105,6 @@ contract Multicall is Ownable {
             names.push(_names[i]);
         }
     }
-
-    /*----------  VIEW FUNCTIONS  ---------------------------------------*/
 
     function getReward(address account) external {
         IGauge(IMapPlugin(plugin).getGauge()).getReward(account);
@@ -123,7 +118,9 @@ contract Multicall is Ownable {
 
     function getGauge(address account) external view returns (GaugeState memory gaugeState) {
         address gauge = IMapPlugin(plugin).getGauge();
-        gaugeState.rewardPerToken = IGauge(gauge).totalSupply() == 0 ? 0 : (IGauge(gauge).getRewardForDuration(oBERO) * 1e18 / IGauge(gauge).totalSupply());
+        gaugeState.rewardPerToken = IGauge(gauge).totalSupply() == 0
+            ? 0
+            : (IGauge(gauge).getRewardForDuration(oBERO) * 1e18 / IGauge(gauge).totalSupply());
         gaugeState.totalSupply = IGauge(gauge).totalSupply();
         gaugeState.balance = IGauge(gauge).balanceOf(account);
         gaugeState.earned = IGauge(gauge).earned(account, oBERO);
@@ -148,7 +145,7 @@ contract Multicall is Ownable {
         FactionState[] memory factionStates = new FactionState[](maxFactions);
         for (uint256 i = 0; i < maxFactions; i++) {
             factionStates[i] = FactionState(
-                names[i],   
+                names[i],
                 factions[i],
                 IMapPlugin(plugin).faction_Balance(factions[i]),
                 IMapPlugin(plugin).faction_Placed(factions[i])
@@ -164,5 +161,4 @@ contract Multicall is Ownable {
     function getPixels(uint256 startIndex, uint256 endIndex) external view returns (IMapPlugin.Pixel[] memory) {
         return IMapPlugin(plugin).getPixels(startIndex, endIndex);
     }
-
 }

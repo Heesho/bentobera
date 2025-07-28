@@ -10,7 +10,6 @@ interface IPlugin {
 }
 
 contract RewardToken is ERC20 {
-
     constructor() ERC20("BeroCallOption", "oBERO") {}
 
     function mint(address to, uint256 amount) external {
@@ -23,7 +22,6 @@ contract RewardToken is ERC20 {
 }
 
 contract Gauge {
-
     address public immutable OTOKEN;
     uint256 public totalSupply;
     mapping(address => uint256) public balanceOf;
@@ -53,7 +51,6 @@ contract Gauge {
     function getReward(address account) external {
         RewardToken(OTOKEN).mint(account, 1e18);
     }
-
 }
 
 contract Bribe {
@@ -62,15 +59,13 @@ contract Bribe {
     function notifyRewardAmount(address token, uint256 amount) external {
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
     }
-
 }
 
 contract Voter {
-
     address public immutable OTOKEN;
     address public immutable GAUGE;
     address public immutable BRIBE;
-    
+
     constructor() {
         OTOKEN = address(new RewardToken());
         GAUGE = address(new Gauge(OTOKEN));
@@ -85,5 +80,4 @@ contract Voter {
     function getReward(address account) external {
         Gauge(GAUGE).getReward(account);
     }
-
 }

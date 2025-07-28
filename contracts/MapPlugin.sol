@@ -14,7 +14,7 @@ interface IGauge {
 }
 
 interface IBribe {
-    function notifyRewardAmount(address token, uint amount) external;
+    function notifyRewardAmount(address token, uint256 amount) external;
 }
 
 interface IVoter {
@@ -31,7 +31,6 @@ interface IRewardVault {
 }
 
 contract VaultToken is ERC20, Ownable {
-    
     constructor() ERC20("BentoBera", "BentoBera") {}
 
     function mint(address to, uint256 amount) external onlyOwner {
@@ -46,15 +45,11 @@ contract VaultToken is ERC20, Ownable {
 contract MapPlugin is ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
 
-    /*----------  CONSTANTS  --------------------------------------------*/
-
     uint256 public constant DURATION = 7 days;
     uint256 public constant AMOUNT = 1 ether;
 
     string public constant PROTOCOL = "Future Girls Inc";
     string public constant NAME = "BentoBera";
-
-    /*----------  STATE VARIABLES  --------------------------------------*/
 
     IERC20 private immutable token;
     address private immutable OTOKEN;
@@ -93,29 +88,15 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     mapping(address => mapping(address => uint256)) public account_Faction_Balance;
     mapping(address => mapping(address => uint256)) public account_Faction_Placed;
 
-    /*----------  ERRORS ------------------------------------------------*/
-
     error Plugin__InvalidIndex();
-    error Plugin__InvalidZeroInput();
     error Plugin__NotAuthorizedVoter();
     error Plugin__InvalidCapacity();
     error Plugin__InvalidZeroAddress();
     error Plugin__NotAuthorizedDeveloper();
-    error Plugin__ArrayMismatch();
 
-    /*----------  EVENTS ------------------------------------------------*/
-
-    event Plugin__Placed(
-        address indexed account,
-        address indexed faction,
-        uint256 index,
-        string color
-    );
+    event Plugin__Placed(address indexed account, address indexed faction, uint256 index, string color);
     event Plugin__ClaimedAndDistributed(
-        uint256 bribeAmount, 
-        uint256 incentivesAmount, 
-        uint256 developerAmount,
-        uint256 treasuryAmount
+        uint256 bribeAmount, uint256 incentivesAmount, uint256 developerAmount, uint256 treasuryAmount
     );
     event Plugin__PriceSet(uint256 price);
     event Plugin__CapacitySet(uint256 capacity);
@@ -125,14 +106,10 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     event Plugin__DeveloperSet(address developer);
     event Plugin__IncentivesSet(address incentives);
 
-    /*----------  MODIFIERS  --------------------------------------------*/
-
     modifier onlyVoter() {
         if (msg.sender != voter) revert Plugin__NotAuthorizedVoter();
         _;
     }
-
-    /*----------  FUNCTIONS  --------------------------------------------*/
 
     constructor(
         address _token,
@@ -163,7 +140,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
             uint256 incentivesAmount = balance * 42 / 100;
             uint256 developerAmount = balance * 8 / 100;
             uint256 treasuryAmount = balance - bribeAmount - incentivesAmount - developerAmount;
-            
+
             token.safeTransfer(developer, developerAmount);
             token.safeTransfer(treasury, treasuryAmount);
 
@@ -188,20 +165,13 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         }
     }
 
-    function placeFor(
-        address account,
-        address faction,
-        uint256 index,
-        string calldata color
-    ) external nonReentrant {
-
+    function placeFor(address account, address faction, uint256 index, string calldata color) external nonReentrant {
         if (index >= capacity) revert Plugin__InvalidIndex();
 
         Pixel memory prevPixel = index_Pixel[index];
         index_Pixel[index] = Pixel(account, faction, color);
 
         if (prevPixel.account != address(0)) {
-
             faction_Balance[prevPixel.faction] -= AMOUNT;
             account_Faction_Balance[prevPixel.account][prevPixel.faction] -= AMOUNT;
 
@@ -234,8 +204,6 @@ contract MapPlugin is ReentrancyGuard, Ownable {
 
         emit Plugin__Placed(account, faction, index, color);
     }
-
-    /*----------  RESTRICTED FUNCTIONS  ---------------------------------*/
 
     function setActiveBribes(bool _activeBribes) external onlyOwner {
         activeBribes = _activeBribes;
@@ -284,8 +252,6 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     function setBribe(address _bribe) external onlyVoter {
         bribe = _bribe;
     }
-
-    /*----------  VIEW FUNCTIONS  ---------------------------------------*/
 
     function balanceOf(address account) public view returns (uint256) {
         return IGauge(gauge).balanceOf(account);
@@ -337,7 +303,7 @@ contract MapPlugin is ReentrancyGuard, Ownable {
 
     function getPixel(uint256 index) public view returns (address account, address faction, string memory color) {
         Pixel memory pixel = index_Pixel[index];
-        return (pixel.account, pixel.faction, pixel.color); 
+        return (pixel.account, pixel.faction, pixel.color);
     }
 
     function getPixels(uint256 startIndex, uint256 endIndex) public view returns (Pixel[] memory) {
@@ -347,5 +313,4 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         }
         return pixels;
     }
-    
 }
