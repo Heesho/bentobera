@@ -55,8 +55,6 @@ describe("local: test1", function () {
       voter.address,
       [base.address],
       [base.address],
-      treasury.address,
-      treasury.address,
       vaultFactory.address
     );
     console.log("- Plugin Initialized");

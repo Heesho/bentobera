@@ -63,15 +63,15 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     address[] private assetTokens;
     address[] private bribeTokens;
 
-    address public treasury;
-    address public developer;
     address public incentives;
+    address public treasury;
+    address public developer0;
+    address public developer1;
+    address public marketing0;
+    address public marketing1;
 
     uint256 public capacity = 100;
     uint256 public price = 0.01 ether;
-
-    bool public activeBribes = true;
-    bool public activeIncentives = false;
 
     struct Pixel {
         address account;
@@ -92,19 +92,20 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     error Plugin__NotAuthorizedVoter();
     error Plugin__InvalidCapacity();
     error Plugin__InvalidZeroAddress();
-    error Plugin__NotAuthorizedDeveloper();
+    error Plugin__NotAuthorized();
 
     event Plugin__Placed(address indexed account, address indexed faction, uint256 index, string color);
     event Plugin__ClaimedAndDistributed(
-        uint256 bribeAmount, uint256 incentivesAmount, uint256 developerAmount, uint256 treasuryAmount
+        uint256 incentivesAmount, uint256 treasuryAmount, uint256 developer0Amount, uint256 developer1Amount, uint256 marketing0Amount, uint256 marketing1Amount
     );
     event Plugin__PriceSet(uint256 price);
     event Plugin__CapacitySet(uint256 capacity);
-    event Plugin__ActiveBribesSet(bool activeBribes);
-    event Plugin__ActiveIncentivesSet(bool activeIncentives);
-    event Plugin__TreasurySet(address treasury);
-    event Plugin__DeveloperSet(address developer);
     event Plugin__IncentivesSet(address incentives);
+    event Plugin__TreasurySet(address treasury);
+    event Plugin__Developer0Set(address developer);
+    event Plugin__Developer1Set(address developer);
+    event Plugin__Marketing0Set(address marketing);
+    event Plugin__Marketing1Set(address marketing);
 
     modifier onlyVoter() {
         if (msg.sender != voter) revert Plugin__NotAuthorizedVoter();
@@ -116,17 +117,19 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         address _voter,
         address[] memory _assetTokens,
         address[] memory _bribeTokens,
-        address _treasury,
-        address _developer,
         address _vaultFactory
     ) {
         token = IERC20(_token);
         voter = _voter;
         assetTokens = _assetTokens;
         bribeTokens = _bribeTokens;
-        treasury = _treasury;
-        developer = _developer;
-        incentives = _treasury;
+
+        incentives = msg.sender;
+        treasury = msg.sender;
+        developer0 = msg.sender;
+        developer1 = msg.sender;
+        marketing0 = msg.sender;
+        marketing1 = msg.sender;
 
         OTOKEN = IVoter(_voter).OTOKEN();
         vaultToken = address(new VaultToken());
@@ -136,32 +139,21 @@ contract MapPlugin is ReentrancyGuard, Ownable {
     function claimAndDistribute() external nonReentrant {
         uint256 balance = token.balanceOf(address(this));
         if (balance > DURATION) {
-            uint256 bribeAmount = balance * 42 / 100;
-            uint256 incentivesAmount = balance * 42 / 100;
-            uint256 developerAmount = balance * 8 / 100;
-            uint256 treasuryAmount = balance - bribeAmount - incentivesAmount - developerAmount;
+            uint256 incentivesAmount = balance * 75 / 95;
+            uint256 developer0Amount = balance * 10 / 95;
+            uint256 developer1Amount = balance * 2 / 95;
+            uint256 marketing0Amount = balance * 2 / 95;
+            uint256 marketing1Amount = balance * 2 / 95;
+            uint256 treasuryAmount = balance - incentivesAmount - developer0Amount - developer1Amount - marketing0Amount - marketing1Amount;
 
-            token.safeTransfer(developer, developerAmount);
+            token.safeTransfer(incentives, incentivesAmount);
+            token.safeTransfer(developer0, developer0Amount);
+            token.safeTransfer(developer1, developer1Amount);
+            token.safeTransfer(marketing0, marketing0Amount);
+            token.safeTransfer(marketing1, marketing1Amount);
             token.safeTransfer(treasury, treasuryAmount);
 
-            uint256 totalIncentiveAmount = bribeAmount + incentivesAmount;
-            if (activeBribes) {
-                if (activeIncentives) {
-                    token.safeTransfer(incentives, incentivesAmount);
-                    token.safeApprove(bribe, 0);
-                    token.safeApprove(bribe, bribeAmount);
-                    IBribe(bribe).notifyRewardAmount(address(token), bribeAmount);
-                    emit Plugin__ClaimedAndDistributed(bribeAmount, incentivesAmount, developerAmount, treasuryAmount);
-                } else {
-                    token.safeApprove(bribe, 0);
-                    token.safeApprove(bribe, totalIncentiveAmount);
-                    IBribe(bribe).notifyRewardAmount(address(token), totalIncentiveAmount);
-                    emit Plugin__ClaimedAndDistributed(totalIncentiveAmount, 0, developerAmount, treasuryAmount);
-                }
-            } else {
-                token.safeTransfer(incentives, totalIncentiveAmount);
-                emit Plugin__ClaimedAndDistributed(0, totalIncentiveAmount, developerAmount, treasuryAmount);
-            }
+            emit Plugin__ClaimedAndDistributed(incentivesAmount, treasuryAmount, developer0Amount, developer1Amount, marketing0Amount, marketing1Amount);
         }
     }
 
@@ -205,16 +197,6 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         emit Plugin__Placed(account, faction, index, color);
     }
 
-    function setActiveBribes(bool _activeBribes) external onlyOwner {
-        activeBribes = _activeBribes;
-        emit Plugin__ActiveBribesSet(activeBribes);
-    }
-
-    function setActiveIncentives(bool _activeIncentives) external onlyOwner {
-        activeIncentives = _activeIncentives;
-        emit Plugin__ActiveIncentivesSet(activeIncentives);
-    }
-
     function setPrice(uint256 _price) external onlyOwner {
         price = _price;
         emit Plugin__PriceSet(_price);
@@ -226,23 +208,44 @@ contract MapPlugin is ReentrancyGuard, Ownable {
         emit Plugin__CapacitySet(capacity);
     }
 
+    function setIncentives(address _incentives) external onlyOwner {
+        if (_incentives == address(0)) revert Plugin__InvalidZeroAddress();
+        incentives = _incentives;
+        emit Plugin__IncentivesSet(incentives);
+    }
+
     function setTreasury(address _treasury) external onlyOwner {
         if (_treasury == address(0)) revert Plugin__InvalidZeroAddress();
         treasury = _treasury;
         emit Plugin__TreasurySet(treasury);
     }
 
-    function setDeveloper(address _developer) external {
-        if (msg.sender != developer) revert Plugin__NotAuthorizedDeveloper();
+    function setDeveloper0(address _developer) external {
+        if (msg.sender != developer0) revert Plugin__NotAuthorized();
         if (_developer == address(0)) revert Plugin__InvalidZeroAddress();
-        developer = _developer;
-        emit Plugin__DeveloperSet(developer);
+        developer0 = _developer;
+        emit Plugin__Developer0Set(developer0);
     }
 
-    function setIncentives(address _incentives) external onlyOwner {
-        if (_incentives == address(0)) revert Plugin__InvalidZeroAddress();
-        incentives = _incentives;
-        emit Plugin__IncentivesSet(incentives);
+    function setDeveloper1(address _developer) external {
+        if (msg.sender != developer1) revert Plugin__NotAuthorized();
+        if (_developer == address(0)) revert Plugin__InvalidZeroAddress();
+        developer1 = _developer;
+        emit Plugin__Developer1Set(developer1);
+    }
+
+    function setMarketing0(address _marketing) external {
+        if (msg.sender != marketing0) revert Plugin__NotAuthorized();
+        if (_marketing == address(0)) revert Plugin__InvalidZeroAddress();
+        marketing0 = _marketing;
+        emit Plugin__Marketing0Set(marketing0);
+    }
+
+    function setMarketing1(address _marketing) external {
+        if (msg.sender != marketing1) revert Plugin__NotAuthorized();
+        if (_marketing == address(0)) revert Plugin__InvalidZeroAddress();
+        marketing1 = _marketing;
+        emit Plugin__Marketing1Set(marketing1);
     }
 
     function setGauge(address _gauge) external onlyVoter {
